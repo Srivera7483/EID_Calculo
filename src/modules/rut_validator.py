@@ -11,48 +11,57 @@ def validar_rut_con_pasos(rut):
     pasos.append(f"RUT ingresado: {rut}")
 
     # Limpiar RUT
-    rut_limpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
-    pasos.append(f"RUT limpio: {rut_limpio}")
+    rutLimpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+    pasos.append(f"RUT limpio: {rutLimpio}")
 
-    # Verificar formato
-    if len(rut_limpio) != 9 or not rut_limpio[:-1].isdigit() or not (rut_limpio[-1].isdigit() or rut_limpio[-1] == 'K'):
+    # Verificar formato básico del RUT limpio
+    # Debe tener exactamente 9 caracteres: 8 dígitos + 1 DV
+    longitudCorrecta = len(rutLimpio) == 9
+    cuerpoEsDigitos = rutLimpio[:-1].isdigit()  # Primeros 8 son números
+    dvEsValido = rutLimpio[-1].isdigit() or rutLimpio[-1] == 'K'  # Último es 0-9 o K
+
+    if not (longitudCorrecta and cuerpoEsDigitos and dvEsValido):
         pasos.append("Formato inválido: debe tener 8 dígitos + DV (0-9 o K)")
         return {'valido': False, 'pasos': pasos}
 
-    cuerpo = rut_limpio[:-1]
-    dv_dado = rut_limpio[-1]
-    pasos.append(f"Cuerpo: {cuerpo}, DV dado: {dv_dado}")
+    cuerpo = rutLimpio[:-1]
+    dvDado = rutLimpio[-1]
+    pasos.append(f"Cuerpo: {cuerpo}, DV dado: {dvDado}")
 
     # Multiplicadores
     multiplicadores = [2, 3, 4, 5, 6, 7, 2, 3]
     pasos.append(f"Multiplicadores (de derecha a izquierda): {multiplicadores}")
 
-    # Cálculo suma
+    # Cálculo de la suma de productos
+    # Multiplicar cada dígito del cuerpo por su multiplicador correspondiente (de derecha a izquierda)
     suma = 0
-    detalle = []
+    detalleProductos = []
     for i in range(8):
-        digito = int(cuerpo[7 - i])
-        mult = multiplicadores[i]
-        prod = digito * mult
-        suma += prod
-        detalle.append(f"{digito} * {mult} = {prod}")
-    pasos.append(f"Productos: {' + '.join(detalle)} = {suma}")
+        digito = int(cuerpo[7 - i])  # Dígito desde la derecha (índice 7 a 0)
+        multiplicador = multiplicadores[i]
+        producto = digito * multiplicador
+        suma += producto
+        detalleProductos.append(f"{digito} * {multiplicador} = {producto}")
+    
+    pasos.append(f"Productos: {' + '.join(detalleProductos)} = {suma}")
 
-    # Resto
+    # Calcular resto de la suma dividido por 11
     resto = suma % 11
     pasos.append(f"Suma % 11 = {resto}")
 
-    # DV esperado
+    # Calcular DV esperado según el resto
     if resto == 0:
-        dv_esperado = '0'
+        dvEsperado = '0'  # Si resto 0, DV = 0
     elif resto == 1:
-        dv_esperado = 'K'
+        dvEsperado = 'K'  # Si resto 1, DV = K
     else:
-        dv_esperado = str(11 - resto)
-    pasos.append(f"DV esperado: {dv_esperado}")
+        dvEsperado = str(11 - resto)  # DV = 11 - resto
+    
+    pasos.append(f"DV esperado: {dvEsperado}")
 
-    valido = dv_dado == dv_esperado
-    pasos.append(f"¿DV dado == DV esperado? {valido}")
+    # Verificar si coincide
+    valido = dvDado == dvEsperado
+    pasos.append(f"¿DV dado ({dvDado}) == DV esperado ({dvEsperado})? {valido}")
 
     return {'valido': valido, 'pasos': pasos}
 
