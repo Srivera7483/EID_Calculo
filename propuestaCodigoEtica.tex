@@ -1,0 +1,253 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{mdframed}
+\usepackage{parskip}
+
+\definecolor{azulUCT}{RGB}{0, 56, 116}
+\definecolor{grisClaro}{RGB}{240, 240, 240}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{azulUCT}{\textbf{MAT1186 -- Introducción al Cálculo}}}
+\fancyhead[R]{\small\textcolor{azulUCT}{Universidad Católica de Temuco}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{azulUCT}}
+  {\thesection}{1em}{}[\textcolor{azulUCT}{\titlerule[1pt]}]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{azulUCT!80}}
+  {\thesubsection}{1em}{}
+\titlespacing*{\section}{0pt}{1.5em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1em}{0.5em}
+
+\newenvironment{articulo}[1]{%
+  \begin{mdframed}[backgroundcolor=grisClaro,linecolor=azulUCT,linewidth=1.5pt,
+    leftmargin=0pt,rightmargin=0pt,innerleftmargin=12pt,innerrightmargin=12pt,
+    innertopmargin=8pt,innerbottommargin=8pt,roundcorner=4pt]
+  \textbf{\textcolor{azulUCT}{Art. #1.}}\ %
+}{\end{mdframed}\vspace{4pt}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1cm}
+  \includegraphics[width=6cm]{logoUct.png}\par
+  \vspace{0.6cm}
+  {\large Ingeniería Civil en Informática -- Facultad de Ingeniería\par}
+  \vspace{1.5cm}
+  \textcolor{azulUCT}{\rule{\linewidth}{1.5pt}}
+  \vspace{0.5cm}
+  {\Huge\bfseries\textcolor{azulUCT}{Código de Ética}\par}
+  \vspace{0.3cm}
+  {\LARGE\bfseries y Reglamento Interno de Grupo\par}
+  \vspace{0.5cm}
+  \textcolor{azulUCT}{\rule{\linewidth}{1.5pt}}
+  \vspace{1cm}
+  {\large\textit{Evaluación Integrada de Desempeño N°1}\par}
+  {\large MAT1186 -- Introducción al Cálculo\par}
+  \vspace{2cm}
+  \begin{tabular}{ll}
+    \textbf{Líder de Grupo:} & Benjamín De La Fuente \\[6pt]
+    \textbf{Suplente:}       & Sebastián Rodrigo Rivera Nahuelhuen \\[6pt]
+    \textbf{Integrante:}     & Rodrigo Reyes \\
+  \end{tabular}
+  \vfill
+  {\large Temuco, \today\par}
+\end{titlepage}
+
+\section*{Preámbulo}
+
+El presente Código de Ética y Reglamento Interno regula el funcionamiento del grupo de trabajo
+conformado para el desarrollo de la Evaluación Integrada de Desempeño N°1 del curso MAT1186.
+
+Este documento surge del compromiso colectivo de sus integrantes con los valores de
+\textbf{responsabilidad}, \textbf{honestidad académica}, \textbf{colaboración activa} y
+\textbf{respeto mutuo}. Asumimos que el éxito del proyecto depende de la participación equitativa y
+genuina de cada miembro, y que cualquier conducta contraria a esos principios perjudica tanto al
+equipo como al proceso de aprendizaje individual.
+
+Al suscribir este código, cada integrante declara haberlo leído, comprendido y acepta
+voluntariamente su cumplimiento durante toda la duración del proyecto.
+
+\newpage
+
+\section{Identificación del Grupo}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{>{\bfseries}p{4cm} p{8cm}}
+  \toprule
+  Curso      & MAT1186 -- Introducción al Cálculo \\
+  Sección    & 1 \\
+  Año / Sem. & 2026 -- Semestre 1 \\
+  Proyecto   & Evaluación Integrada de Desempeño N°1 \\
+  \midrule
+  Líder      & Benjamín De La Fuente \\
+  Suplente   & Sebastián Rodrigo Rivera Nahuelhuen \\
+  Integrante & Rodrigo Reyes \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section{Definición de Roles y Responsabilidades}
+
+\subsection{Líder de Grupo -- Benjamín De La Fuente}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+  \item Organizar y convocar las reuniones de trabajo, fijando agenda y plazos internos.
+  \item Ser el canal oficial de comunicación con el equipo docente.
+  \item Supervisar el avance general del proyecto y velar por el cumplimiento de los plazos.
+  \item Gestionar el repositorio de GitHub: crear la estructura inicial, administrar ramas y revisar que todos los integrantes registren sus commits.
+  \item Mediar en conflictos internos antes de escalarlos al docente.
+  \item Participar activamente en el desarrollo técnico del proyecto como un integrante más.
+\end{itemize}
+
+\subsection{Suplente -- Sebastián Rodrigo Rivera Nahuelhuen}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+  \item Asumir las funciones de líder en ausencia justificada de este.
+  \item Desarrollar los módulos técnicos asignados en coordinación con el equipo.
+  \item Registrar avances mediante commits regulares y descriptivos en GitHub.
+  \item Participar activamente en la preparación de la defensa oral.
+  \item Informar oportunamente al líder si alguna tarea no puede completarse según lo acordado.
+\end{itemize}
+
+\subsection{Integrante -- Rodrigo Reyes}
+
+\begin{itemize}[leftmargin=1.5em, itemsep=3pt]
+  \item Desarrollar los módulos técnicos asignados según la distribución acordada por el equipo.
+  \item Registrar avances mediante commits regulares y descriptivos en GitHub.
+  \item Participar activamente en la preparación de la defensa oral.
+  \item Documentar el código bajo los estándares acordados por el grupo.
+  \item Informar oportunamente al líder si alguna tarea no puede completarse según lo acordado.
+\end{itemize}
+
+\section{Funcionamiento Interno}
+
+\subsection{Reuniones y comunicación}
+
+\begin{articulo}{1}
+El grupo se reunirá con una frecuencia mínima de \textbf{dos veces por semana} durante el período de desarrollo del proyecto. Las reuniones podrán ser presenciales o en línea, según disponibilidad acordada.
+\end{articulo}
+
+\begin{articulo}{2}
+El canal principal de comunicación será \textbf{WhatsApp}. Todos los integrantes deben responder mensajes en un plazo máximo de \textbf{24 horas}. Los acuerdos alcanzados en reuniones deberán quedar registrados por escrito en dicho canal.
+\end{articulo}
+
+\begin{articulo}{3}
+La inasistencia a una reunión deberá ser comunicada con al menos \textbf{12 horas de anticipación}. La inasistencia reiterada sin justificación constituye una falta al presente código.
+\end{articulo}
+
+\subsection{Distribución de tareas}
+
+\begin{articulo}{4}
+Las tareas se distribuirán en la primera reunión formal del grupo, buscando una carga de trabajo equitativa. La distribución quedará registrada en un documento compartido y en el \textit{README} del repositorio.
+\end{articulo}
+
+\begin{articulo}{5}
+Cada integrante es responsable de completar sus tareas asignadas en los plazos internos acordados. Si un miembro prevé dificultades, deberá informarlo con anticipación suficiente para que el equipo pueda reorganizarse.
+\end{articulo}
+
+\subsection{Repositorio y control de versiones}
+
+\begin{articulo}{6}
+Todos los integrantes deben realizar un mínimo de \textbf{tres (3) commits significativos} en el repositorio de GitHub. Los mensajes de commit deben ser claros y describir concretamente el cambio realizado; se prohíben mensajes genéricos como \texttt{update} o \texttt{fix}.
+\end{articulo}
+
+\begin{articulo}{7}
+Queda prohibido realizar commits con trabajo ajeno como si fuera propio. Cada commit debe representar una contribución real del integrante que lo suscribe.
+\end{articulo}
+
+\section{Código de Ética y Conducta}
+
+\subsection{Compromisos individuales}
+
+Cada integrante del grupo declara y se compromete a:
+
+\begin{enumerate}[leftmargin=1.5em, label=\textbf{\arabic*.}, itemsep=4pt]
+
+  \item \textbf{Uso responsable de herramientas de apoyo:} el grupo podrá utilizar herramientas de inteligencia artificial como apoyo en el proceso de desarrollo. No obstante, todos los integrantes deben comprender, ser capaces de explicar y poder defender cualquier parte del trabajo resultante. Queda prohibida la entrega de código o contenido que ningún miembro del grupo comprende o puede justificar. La copia de repositorios externos sin atribución y cualquier otra forma de plagio constituyen faltas graves.
+
+  \item \textbf{Participación activa y equitativa:} ningún integrante se limitará a observar el trabajo ajeno. Todos contribuirán al desarrollo técnico, matemático y a la preparación de la defensa oral.
+
+  \item \textbf{Transparencia:} si un integrante no comprende algún módulo del proyecto, lo comunicará al grupo en lugar de ocultar la situación. El aprendizaje mutuo es parte del objetivo del trabajo.
+
+  \item \textbf{Respeto:} las interacciones dentro del grupo se desarrollarán en un clima de respeto y tolerancia. Quedan prohibidas las descalificaciones personales, las críticas destructivas y toda forma de discriminación.
+
+  \item \textbf{Puntualidad:} los integrantes se comprometen a cumplir los plazos internos acordados y a asistir puntualmente a las instancias de trabajo colectivo.
+
+  \item \textbf{Responsabilidad colectiva:} todos los integrantes deben comprender el funcionamiento completo del programa. Nadie puede excusarse de responder en la defensa oral argumentando que ``esa parte la hizo otro''.
+
+  \item \textbf{Integridad del repositorio:} el historial de commits refleja el trabajo real de cada integrante. Manipular el repositorio para simular participación que no existió constituye una falta grave.
+
+\end{enumerate}
+
+\subsection{Consecuencias por incumplimiento}
+
+Las faltas al presente código se abordarán de manera escalonada:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{>{\centering\bfseries\color{azulUCT}}m{2cm} >{\bfseries}m{3.5cm} m{7cm}}
+  \toprule
+  \textbf{Nivel} & \textbf{Tipo de falta} & \textbf{Medida} \\
+  \midrule
+  1 & Leve\newline(primera vez) &
+    Llamado de atención verbal por parte del líder, con registro escrito en el canal del grupo. \\
+  2 & Moderada\newline(reincidencia) &
+    Reasignación de tareas y advertencia formal. Se documenta el incidente y se informa al docente de manera preventiva. \\
+  3 & Grave\newline(reincidencia o falta ética mayor) &
+    Comunicación formal al equipo docente, acompañada de evidencia, solicitando intervención externa. La calificación grupal podría verse afectada. \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section{Procedimiento ante Conflictos}
+
+\begin{articulo}{8}
+Ante cualquier desacuerdo, el grupo seguirá el siguiente protocolo:
+\begin{enumerate}[leftmargin=1.2em, itemsep=2pt, label=\arabic{enumi}.]
+  \item \textbf{Diálogo directo:} las partes involucradas intentarán resolver el conflicto de manera autónoma en el plazo de 48 horas.
+  \item \textbf{Mediación del líder:} si no se alcanza un acuerdo, el líder actuará como mediador. Si el líder es parte del conflicto, asumirá esta función el suplente.
+  \item \textbf{Escalamiento al docente:} si el conflicto persiste luego de la mediación interna, el grupo comunicará la situación al equipo docente, presentando el registro escrito de los intentos previos de resolución.
+\end{enumerate}
+\end{articulo}
+
+\begin{articulo}{9}
+Cualquier decisión que afecte la estructura o distribución del proyecto deberá ser consensuada por la mayoría del grupo (al menos 2 de 3 integrantes).
+\end{articulo}
+
+\section{Declaración Final}
+
+Los abajo firmantes declaramos haber leído, comprendido y aceptado en su totalidad el presente Código de Ética y Reglamento Interno. Asumimos el compromiso de actuar conforme a sus principios durante el desarrollo de la Evaluación Integrada de Desempeño N°1 del curso MAT1186.
+
+Reconocemos que el incumplimiento de este código puede afectar la calificación grupal y, principalmente, la integridad del aprendizaje que buscamos alcanzar como futuros profesionales.
+
+\vspace{2.5cm}
+
+\begin{center}
+\renewcommand{\arraystretch}{2.5}
+\begin{tabular}{ccc}
+  \underline{\hspace{4.5cm}} & \underline{\hspace{4.5cm}} & \underline{\hspace{4.5cm}} \\[2pt]
+  \textbf{Benjamín De La Fuente} & \textbf{Sebastián R. Rivera N.} & \textbf{Rodrigo Reyes} \\
+  Líder de Grupo & Suplente & Integrante \\[20pt]
+  Firma: \underline{\hspace{3cm}} & Firma: \underline{\hspace{3cm}} & Firma: \underline{\hspace{3cm}} \\[2pt]
+  Fecha: \underline{\hspace{3cm}} & Fecha: \underline{\hspace{3cm}} & Fecha: \underline{\hspace{3cm}} \\
+\end{tabular}
+\end{center}
+
+\end{document}
