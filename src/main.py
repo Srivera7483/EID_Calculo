@@ -2,7 +2,7 @@
 # Proyecto MAT1186: Análisis de secciones cónicas y funciones por tramos a partir del RUT
 
 from modules.rut_validator import validarRutConPasos, extraerDigitos, calcularV
-# from modules.conic import construir_ecuacion_general, clasificar_conica
+# from modules.conic import construirEcuacionGeneral, clasificarConica
 # from modules.transformations import transformar_a_canonica
 # from modules.plotter import graficar_conica
 # from modules.functions import analizar_funcion_por_tramos

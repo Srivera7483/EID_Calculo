@@ -71,7 +71,8 @@ def validarRutConPasos(rut):
 
     # Verificar si coincide
     valido = dvDado == dvEsperado
-    pasos.append(f"¿DV dado ({dvDado}) == DV esperado ({dvEsperado})? {valido}")
+    resultado = "VÁLIDO" if valido else "INVÁLIDO"
+    pasos.append(f"Comparación: ¿DV dado ({dvDado}) == DV esperado ({dvEsperado})? {resultado}")
 
     return {'valido': valido, 'pasos': pasos}
 
