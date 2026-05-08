@@ -1,0 +1,17 @@
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv/
+
+# Archivos de entorno y configuración local
+.env
+
+# Archivos temporales de SO
+.DS_Store
+Thumbs.db
