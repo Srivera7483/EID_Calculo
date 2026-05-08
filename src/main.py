@@ -1,7 +1,7 @@
 # main.py - Punto de entrada del programa EID_Calculo
 # Proyecto MAT1186: Análisis de secciones cónicas y funciones por tramos a partir del RUT
 
-from modules.rut_validator import validar_rut_con_pasos, extraer_digitos, calcular_v
+from modules.rut_validator import validarRutConPasos, extraerDigitos, calcularV
 # from modules.conic import construir_ecuacion_general, clasificar_conica
 # from modules.transformations import transformar_a_canonica
 # from modules.plotter import graficar_conica
@@ -22,7 +22,7 @@ def main():
     rut = input("Ingrese un RUT chileno válido (formato: 12345678-9): ").strip()
     
     # Paso 2: Validación del RUT con pasos
-    resultado_validacion = validar_rut_con_pasos(rut)
+    resultado_validacion = validarRutConPasos(rut)
     for paso in resultado_validacion['pasos']:
         print(paso)
     
@@ -33,10 +33,10 @@ def main():
     print("RUT válido.")
     
     # Paso 3: Extracción de dígitos y cálculo de v
-    digitos = extraer_digitos(rut)
+    digitos = extraerDigitos(rut)
     rut_limpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
     dv = rut_limpio[-1]
-    v = calcular_v(dv)
+    v = calcularV(dv)
     print(f"Dígitos extraídos: {digitos}")
     print(f"Dígito verificador: {dv}")
     print(f"Variable v: {v}")

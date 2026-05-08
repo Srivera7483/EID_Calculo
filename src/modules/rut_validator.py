@@ -1,11 +1,21 @@
-# rut_validator.py - Validación del RUT chileno usando algoritmo módulo 11
+# rutValidator.py - Validación del RUT chileno usando algoritmo módulo 11
+# ============================================================================
+# ALGORITMO MÓDULO 11 (Estándar SII Chile):
+# 1. Multiplicar cada dígito del RUT (de derecha a izquierda) por [2,3,4,5,6,7,2,3]
+# 2. Sumar todos los productos
+# 3. Calcular resto de la suma dividido por 11
+# 4. DV = 11 - resto (con excepciones: si resto=0 → DV=0, si resto=1 → DV=K)
+# Esto detecta errores: si cambias un dígito, el DV no coincidirá.
 
-def validar_rut_con_pasos(rut):
+def validarRutConPasos(rut):
     """
-    Valida RUT y retorna pasos detallados para mostrar.
+    Valida RUT chileno usando algoritmo módulo 11 y retorna pasos detallados.
+    
+    Parámetros:
+        rut (str): RUT en formato "12345678-9" o "12345678K"
 
-    Returns:
-        dict: {'valido': bool, 'pasos': list[str]}
+    Retorna:
+        dict: {'valido': bool, 'pasos': list[str]} con pasos detallados del proceso
     """
     pasos = []
     pasos.append(f"RUT ingresado: {rut}")
@@ -65,38 +75,46 @@ def validar_rut_con_pasos(rut):
 
     return {'valido': valido, 'pasos': pasos}
 
-def extraer_digitos(rut):
+def extraerDigitos(rut):
     """
-    Extrae los 8 dígitos del cuerpo del RUT.
+    Extrae los 8 dígitos del cuerpo del RUT (sin el DV).
 
-    Args:
-        rut (str): RUT válido.
+    Parámetros:
+        rut (str): RUT válido en cualquier formato (ej: "12345678-9", "12.345.678-9")
 
-    Returns:
-        list[int]: Lista de 8 dígitos [d1, d2, d3, d4, d5, d6, d7, d8].
+    Retorna:
+        list[int]: Lista de 8 dígitos [d1, d2, d3, d4, d5, d6, d7, d8]
 
-    Ejemplo: Para "12345678-9", retorna [1, 2, 3, 4, 5, 6, 7, 8]
+    Ejemplo: 
+        entrada: "12345678-9"
+        salida: [1, 2, 3, 4, 5, 6, 7, 8]
     """
-    # Limpiar RUT
-    rut = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
-    cuerpo = rut[:-1]  # 8 dígitos
+    # Limpiar RUT: quitar puntos, guiones y espacios, convertir a mayúsculas
+    rutLimpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+    cuerpo = rutLimpio[:-1]  # Extraer los 8 primeros caracteres (ignorar DV)
     return [int(d) for d in cuerpo]
 
-def calcular_v(dv):
+def calcularV(dv):
     """
-    Calcula la variable auxiliar v según el dígito verificador.
+    Calcula la variable auxiliar 'v' según el dígito verificador del RUT.
+    
+    Esta variable se usa para calcular los coeficientes de la ecuación cónica
+    (A, B según contexto.md)
 
-    Args:
-        dv (str): Dígito verificador ('0'-'9' o 'K').
+    Parámetros:
+        dv (str): Dígito verificador ('0'-'9' o 'K')
 
-    Returns:
-        int: v = 10 si DV='K', 11 si DV='0', DV numérico si '1'-'9'.
+    Retorna:
+        int: v = 10 si DV='K', 11 si DV='0', valor numérico si DV='1'-'9'
 
-    Ejemplo: 'K' → 10, '0' → 11, '5' → 5
+    Ejemplo:
+        'K' → 10
+        '0' → 11
+        '5' → 5
     """
     if dv == 'K':
-        return 10
+        return 10  # Letra K mapea a 10
     elif dv == '0':
-        return 11
+        return 11  # Dígito 0 mapea a 11
     else:
-        return int(dv)
+        return int(dv)  # Otros dígitos se usan directamente
