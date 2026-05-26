@@ -36,38 +36,53 @@ def construirEcuacionGeneral(digitos, v):
     # Extractar dígitos
     d1, d2, d3, d4, d5, d6, d7, d8 = digitos
     
-    # TODO: Implementar cálculo de coeficientes básicos
-    # A = (d1 + d2) / v
-    # B = (d3 + d4) / v
-    # C = -(d5 + d6)
-    # D = -(d7 + d8)
-    # E = d1 + d3 + d5 + d7
+    # Calcular coeficientes básicos
+    A_calc = (d1 + d2) / v
+    B_calc = (d3 + d4) / v
+    C_calc = -(d5 + d6)
+    D_calc = -(d7 + d8)
+    E_calc = d1 + d3 + d5 + d7
     
     pasos.append("Coeficientes sin ajustes:")
-    pasos.append(f"  A = ({d1} + {d2}) / {v} = {d1 + d2} / {v}")
-    pasos.append(f"  B = ({d3} + {d4}) / {v} = {d3 + d4} / {v}")
-    pasos.append(f"  C = -({d5} + {d6}) = {-(d5 + d6)}")
-    pasos.append(f"  D = -({d7} + {d8}) = {-(d7 + d8)}")
-    pasos.append(f"  E = {d1} + {d3} + {d5} + {d7}")
+    pasos.append(f"  A = ({d1} + {d2}) / {v} = {A_calc}")
+    pasos.append(f"  B = ({d3} + {d4}) / {v} = {B_calc}")
+    pasos.append(f"  C = -({d5} + {d6}) = {C_calc}")
+    pasos.append(f"  D = -({d7} + {d8}) = {D_calc}")
+    pasos.append(f"  E = {d1} + {d3} + {d5} + {d7} = {E_calc}")
     
     pasos.append("")
     pasos.append("=== PASO 2: Aplicar ajustes según reglas SII ===")
     
-    # TODO: Aplicar ajustes
-    # - Si d8 es impar: B → -B
-    # - Si d1 = d2: B = A
-    # - Si (d5 + d6) múltiplo de 3: aplicar regla de parábola
+    A = A_calc
+    B = B_calc
+    C = C_calc
+    D = D_calc
+    E = E_calc
     
-    pasos.append(f"Verificar d8 impar: {d8} es {'impar' if d8 % 2 != 0 else 'par'}")
-    pasos.append(f"Verificar d1 = d2: {d1} {'=' if d1 == d2 else '≠'} {d2}")
-    pasos.append(f"Verificar (d5 + d6) múltiplo de 3: ({d5} + {d6}) = {d5 + d6} {'es' if (d5 + d6) % 3 == 0 else 'no es'} múltiplo de 3")
+    es_d8_impar = d8 % 2 != 0
+    es_d1_igual_d2 = d1 == d2
+    es_d5_d6_mult_3 = (d5 + d6) % 3 == 0
     
-    # Placeholder para coeficientes finales
-    A = B = C = D = E = 0
+    pasos.append(f"Verificar d8 impar: {d8} es {'impar' if es_d8_impar else 'par'}")
+    pasos.append(f"Verificar d1 = d2: {d1} {'=' if es_d1_igual_d2 else '≠'} {d2}")
+    pasos.append(f"Verificar (d5 + d6) múltiplo de 3: ({d5} + {d6}) = {d5 + d6} {'es' if es_d5_d6_mult_3 else 'no es'} múltiplo de 3")
+    
+    # Aplicar ajustes en orden
+    if es_d8_impar:
+        B = -B
+        pasos.append("-> Ajuste aplicado: d8 es impar, por lo tanto B cambia de signo (B = -B)")
+        
+    if es_d1_igual_d2:
+        B = A
+        pasos.append("-> Ajuste aplicado: d1 = d2, por lo tanto B = A (genera circunferencia)")
+        
+    if es_d5_d6_mult_3:
+        A = 0
+        pasos.append("-> Ajuste aplicado: (d5 + d6) es múltiplo de 3, por lo tanto A = 0 (genera parábola)")
     
     pasos.append("")
     pasos.append("=== Ecuación General Final ===")
-    pasos.append(f"A = ?, B = ?, C = ?, D = ?, E = ?")
+    pasos.append(f"A = {A}, B = {B}, C = {C}, D = {D}, E = {E}")
     
     return {
         'A': A,
@@ -101,11 +116,25 @@ def clasificarConica(coeficientes):
     pasos.append(f"Coeficientes: A = {A}, B = {B}")
     pasos.append("")
     
-    # TODO: Implementar lógica de clasificación
-    # Aplicar reglas de clasificación según A y B
-    
-    tipo = "Desconocida"
-    descripcion = "Clasificación pendiente"
+    # Lógica de clasificación
+    if A == B and A != 0:
+        tipo = "Circunferencia"
+        descripcion = "A y B son iguales y distintos de cero"
+    elif A * B > 0 and A != B:
+        tipo = "Elipse"
+        descripcion = "A y B tienen el mismo signo pero son distintos"
+    elif A * B < 0:
+        tipo = "Hipérbola"
+        descripcion = "A y B tienen signos opuestos"
+    elif (A == 0 and B != 0) or (A != 0 and B == 0):
+        tipo = "Parábola"
+        descripcion = "Exactamente A o B es cero"
+    else:
+        tipo = "Desconocida/Degenerada"
+        descripcion = "Los coeficientes no forman una cónica válida"
+        
+    pasos.append(f"Evaluación: {descripcion}")
+    pasos.append(f"Resultado: {tipo}")
     
     return {
         'tipo': tipo,
@@ -120,6 +149,28 @@ def mostrarEcuacion(coeficientes):
     Retorna:
         str: Ecuación formateada como "Ax² + By² + Cx + Dy + E = 0"
     """
-    # TODO: Implementar formateo de ecuación
-    ecuacion = "Ax² + By² + Cx + Dy + E = 0"
+    A = coeficientes.get('A', 0)
+    B = coeficientes.get('B', 0)
+    C = coeficientes.get('C', 0)
+    D = coeficientes.get('D', 0)
+    E = coeficientes.get('E', 0)
+    
+    terminos = []
+    if A != 0: terminos.append(f"{A}x²")
+    if B != 0: terminos.append(f"{B}y²")
+    if C != 0: terminos.append(f"{C}x")
+    if D != 0: terminos.append(f"{D}y")
+    if E != 0: terminos.append(f"{E}")
+    
+    if not terminos:
+        return "0 = 0"
+        
+    ecuacion = terminos[0]
+    for termino in terminos[1:]:
+        if termino.startswith("-"):
+            ecuacion += f" - {termino[1:]}"
+        else:
+            ecuacion += f" + {termino}"
+            
+    ecuacion += " = 0"
     return ecuacion

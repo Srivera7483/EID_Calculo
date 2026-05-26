@@ -2,10 +2,10 @@
 # Proyecto MAT1186: Análisis de secciones cónicas y funciones por tramos a partir del RUT
 
 from modules.rut_validator import validarRutConPasos, extraerDigitos, calcularV
-# from modules.conic import construirEcuacionGeneral, clasificarConica
+from modules.conic import construirEcuacionGeneral, clasificarConica, mostrarEcuacion
 # from modules.transformations import transformarACanonica
 # from modules.plotter import graficarConica
-# from modules.functions import analizarFuncionPorTramos
+from modules.functions import analizarFuncionPorTramos
 # from ui.interface import iniciarInterfaz
 
 def main():
@@ -41,24 +41,37 @@ def main():
     print(f"Dígito verificador: {dv}")
     print(f"Variable v: {v}")
     
-    # Paso 4: Construcción de la ecuación general (pendiente)
-    # ecuacionGeneral = construirEcuacionGeneral(digitos)
-    # print(f"Ecuación general: {ecuacionGeneral}")
+    print("\n" + "="*50)
+    print("FASE 1: CONSTRUCCIÓN DE LA ECUACIÓN GENERAL")
+    print("="*50)
+    # Paso 4: Construcción de la ecuación general
+    ecuacionGeneralData = construirEcuacionGeneral(digitos, v)
+    for paso in ecuacionGeneralData['pasos']:
+        print(paso)
+        
+    ecuacionTexto = mostrarEcuacion(ecuacionGeneralData)
+    print(f"\n>> Ecuación formateada: {ecuacionTexto}")
     
-    # Paso 5: Clasificación de la cónica (pendiente)
-    # tipoConica = clasificarConica(ecuacionGeneral)
-    # print(f"Tipo de cónica: {tipoConica}")
+    # Paso 5: Clasificación de la cónica
+    print("\n--- Clasificación de la Cónica ---")
+    tipoConicaData = clasificarConica(ecuacionGeneralData)
+    for paso in tipoConicaData['pasos']:
+        print(paso)
     
     # Paso 6: Transformación a forma canónica (pendiente)
-    # formaCanonica = transformarACanonica(ecuacionGeneral)
+    # formaCanonica = transformarACanonica(ecuacionGeneralData)
     # print(f"Forma canónica: {formaCanonica}")
     
-    # Paso 7: Análisis de funciones por tramos (pendiente)
-    # analisisFunciones = analizarFuncionPorTramos(digitos)
-    # print(f"Análisis de funciones: {analisisFunciones}")
+    print("\n" + "="*50)
+    print("FASE 6: ANÁLISIS DE FUNCIONES POR TRAMOS")
+    print("="*50)
+    # Paso 7: Análisis de funciones por tramos
+    analisisFunciones = analizarFuncionPorTramos(digitos)
+    for paso in analisisFunciones['pasos']:
+        print(paso)
     
     # Paso 8: Iniciar interfaz gráfica (pendiente)
-    # iniciarInterfaz(ecuacionGeneral, formaCanonica, analisisFunciones)
+    # iniciarInterfaz(ecuacionGeneralData, None, analisisFunciones)
 
 if __name__ == "__main__":
     main()

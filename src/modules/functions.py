@@ -55,66 +55,92 @@ def generarFuncionPorTramos(digitos):
         'funcionFormula': funcionFormula,
         'puntoAnalisis': d3,
         'tipo': tipo,
+        'digitos': digitos,
         'pasos': pasos
     }
 
-def calcularLimitesLaterales(funcion, puntoAnalisis, tipo):
+def calcularLimitesLaterales(funcion, puntoAnalisis, tipo, digitos):
     """
     Calcula límites laterales manualmente usando tabla de valores.
-    
-    Parámetros:
-        funcion (str): Fórmula de la función
-        puntoAnalisis (int): Punto a donde se aproxima (a)
-        tipo (str): 'removible', 'salto', 'infinita'
-    
-    Retorna:
-        dict: {
-            'limiteIzquierda': float o None,
-            'limiteDerecha': float o None,
-            'existeLimite': bool,
-            'valores': dict,  # Tabla de valores cercanos
-            'pasos': list[str]
-        }
     """
     pasos = []
-    valores = {}
+    valores = {'izq': {}, 'der': {}}
+    d1, d2, d3, d4, d5, d6, d7, d8 = digitos
     
     pasos.append("=== CÁLCULO DE LÍMITES LATERALES ===")
     pasos.append(f"Punto de análisis: x → {puntoAnalisis}")
     pasos.append("")
     
-    # TODO: Implementar cálculo de tabla de valores
-    # Por la izquierda: a-1, a-0.1, a-0.01, a-0.001
-    # Por la derecha: a+0.001, a+0.01, a+0.1, a+1
+    def evaluar(x):
+        try:
+            if tipo == 'removible':
+                if x == d3: return None
+                return (x - d3) * (x + d1) / (x - d3)
+            elif tipo == 'salto':
+                return x + d2 if x < d3 else x + d4
+            elif tipo == 'infinita':
+                if x == d3: return None
+                return (d5 + 1) / (x - d3)
+        except ZeroDivisionError:
+            return None
+            
+    # Valores por la izquierda
+    delta_izq = [-1, -0.1, -0.01, -0.001]
+    for d in delta_izq:
+        x_val = puntoAnalisis + d
+        valores['izq'][x_val] = evaluar(x_val)
+        
+    # Valores por la derecha
+    delta_der = [0.001, 0.01, 0.1, 1]
+    for d in delta_der:
+        x_val = puntoAnalisis + d
+        valores['der'][x_val] = evaluar(x_val)
     
     pasos.append("Tabla de valores cercanos a x = {}:".format(puntoAnalisis))
-    pasos.append("Izquierda | f(x) | Derecha | f(x)")
-    pasos.append("TODO: Calcular valores")
+    pasos.append(f"{'Izquierda (x)':<15} | {'f(x)':<15} || {'Derecha (x)':<15} | {'f(x)':<15}")
+    pasos.append("-" * 68)
     
-    # Placeholders
-    limiteIzquierda = None
-    limiteDerecha = None
-    existeLimite = False
+    for i in range(4):
+        x_i = puntoAnalisis + delta_izq[3-i]  # De más lejano a más cercano
+        f_i = valores['izq'][x_i]
+        str_i = f"{f_i:.4f}" if f_i is not None else "Indefinido"
+        
+        x_d = puntoAnalisis + delta_der[i]    # De más cercano a más lejano
+        f_d = valores['der'][x_d]
+        str_d = f"{f_d:.4f}" if f_d is not None else "Indefinido"
+        
+        pasos.append(f"{x_i:<15.4f} | {str_i:<15} || {x_d:<15.4f} | {str_d:<15}")
+
+    # Estimación de límites (tomando el valor más cercano)
+    val_izq_cercano = valores['izq'][puntoAnalisis - 0.001]
+    val_der_cercano = valores['der'][puntoAnalisis + 0.001]
+    
+    if tipo == 'infinita':
+        limiteIzquierda = "-∞" if val_izq_cercano < 0 else "+∞"
+        limiteDerecha = "-∞" if val_der_cercano < 0 else "+∞"
+    else:
+        limiteIzquierda = round(val_izq_cercano, 2)
+        limiteDerecha = round(val_der_cercano, 2)
+        
+    existeLimite = (limiteIzquierda == limiteDerecha) and (tipo != 'infinita')
+    
+    pasos.append("")
+    pasos.append(f"Límite por la izquierda: {limiteIzquierda}")
+    pasos.append(f"Límite por la derecha: {limiteDerecha}")
+    pasos.append(f"¿Existe el límite ordinario?: {'Sí' if existeLimite else 'No'}")
     
     return {
         'limiteIzquierda': limiteIzquierda,
         'limiteDerecha': limiteDerecha,
         'existeLimite': existeLimite,
         'valores': valores,
-        'pasos': pasos
+        'pasos': pasos,
+        'f_eval': evaluar
     }
 
 def analizarContinuidad(limites, puntoAnalisis, tipo):
     """
     Analiza si la función es continua en el punto y clasifica discontinuidad.
-    
-    Retorna:
-        dict: {
-            'esContinua': bool,
-            'tipoDiscontinuidad': str,  # 'removible', 'salto', 'infinita', 'ninguna'
-            'justificacion': str,
-            'pasos': list[str]
-        }
     """
     pasos = []
     
@@ -122,12 +148,28 @@ def analizarContinuidad(limites, puntoAnalisis, tipo):
     pasos.append(f"Condición: lim(x→{puntoAnalisis}⁻) = lim(x→{puntoAnalisis}⁺) = f({puntoAnalisis})?")
     pasos.append("")
     
-    # TODO: Implementar análisis según límites
+    f_eval = limites['f_eval']
+    valor_en_punto = f_eval(puntoAnalisis)
+    
+    str_valor = f"{valor_en_punto:.2f}" if valor_en_punto is not None else "Indefinido"
+    pasos.append(f"Valor de la función en el punto f({puntoAnalisis}): {str_valor}")
+    
+    esContinua = False
+    justificacion = ""
+    
+    if tipo == 'removible':
+        justificacion = f"El límite existe y vale {limites['limiteIzquierda']}, pero la función no está definida en x={puntoAnalisis} (denominador cero). Es una discontinuidad evitable/removible."
+    elif tipo == 'salto':
+        justificacion = f"Los límites laterales existen pero son diferentes ({limites['limiteIzquierda']} ≠ {limites['limiteDerecha']}). Es una discontinuidad de salto."
+    elif tipo == 'infinita':
+        justificacion = f"La función crece sin tope cerca de x={puntoAnalisis} (tendencia a {limites['limiteIzquierda']}/{limites['limiteDerecha']}). Es una discontinuidad asintótica infinita."
+        
+    pasos.append(f"Justificación: {justificacion}")
     
     return {
-        'esContinua': False,
+        'esContinua': esContinua,
         'tipoDiscontinuidad': tipo,
-        'justificacion': 'TODO',
+        'justificacion': justificacion,
         'pasos': pasos
     }
 
@@ -148,7 +190,8 @@ def analizarFuncionPorTramos(digitos):
     limites_data = calcularLimitesLaterales(
         funcion_data['funcionFormula'],
         funcion_data['puntoAnalisis'],
-        funcion_data['tipo']
+        funcion_data['tipo'],
+        funcion_data['digitos']
     )
     pasos.extend(limites_data['pasos'])
     
