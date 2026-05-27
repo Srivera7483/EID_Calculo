@@ -370,14 +370,14 @@ Se puede solicitar:
 
 ### Naming:
 ```python
-# Variables y funciones: snake_case
-rut_ingresado = "20123456-K"
-def validar_rut(rut):
+# Variables y funciones: camelCase
+rutIngresado = "20123456-K"
+def validarRut(rut):
     pass
 
-# Constantes: UPPER_SNAKE_CASE
-MODULO_11 = 11
-DIGITOS_RUT = 8
+# Constantes: camelCase
+modulo11 = 11
+digitosRut = 8
 
 # Clases: PascalCase
 class ConicaEcuacion:
@@ -386,7 +386,7 @@ class ConicaEcuacion:
 
 ### Estructura de funciones:
 ```python
-def calcular_coeficiente_a(d1, d2, v):
+def calcularCoeficienteA(d1, d2, v):
     """
     Calcula el coeficiente A de la ecuación cónica.
     
@@ -403,7 +403,7 @@ def calcular_coeficiente_a(d1, d2, v):
 ### Manejo de errores:
 ```python
 try:
-    resultado = operacion_matematica()
+    resultado = operacionMatematica()
 except ValueError as e:
     print(f"Error en cálculo: {e}")
 except ZeroDivisionError:
