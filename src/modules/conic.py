@@ -37,46 +37,49 @@ def construirEcuacionGeneral(digitos, v):
     d1, d2, d3, d4, d5, d6, d7, d8 = digitos
     
     # Calcular coeficientes básicos
-    A_calc = (d1 + d2) / v
-    B_calc = (d3 + d4) / v
-    C_calc = -(d5 + d6)
-    D_calc = -(d7 + d8)
-    E_calc = d1 + d3 + d5 + d7
+    # Calcular coeficientes básicos (fórmulas dadas por el profesor)
+    aCalc = (d1 + d2) / v
+    bCalc = (d3 + d4) / v
+    cCalc = -(d5 + d6)
+    dCalc = -(d7 + d8)
+    eCalc = d1 + d3 + d5 + d7
     
     pasos.append("Coeficientes sin ajustes:")
-    pasos.append(f"  A = ({d1} + {d2}) / {v} = {A_calc}")
-    pasos.append(f"  B = ({d3} + {d4}) / {v} = {B_calc}")
-    pasos.append(f"  C = -({d5} + {d6}) = {C_calc}")
-    pasos.append(f"  D = -({d7} + {d8}) = {D_calc}")
-    pasos.append(f"  E = {d1} + {d3} + {d5} + {d7} = {E_calc}")
+    pasos.append(f"  A = ({d1} + {d2}) / {v} = {aCalc}")
+    pasos.append(f"  B = ({d3} + {d4}) / {v} = {bCalc}")
+    pasos.append(f"  C = -({d5} + {d6}) = {cCalc}")
+    pasos.append(f"  D = -({d7} + {d8}) = {dCalc}")
+    pasos.append(f"  E = {d1} + {d3} + {d5} + {d7} = {eCalc}")
     
     pasos.append("")
     pasos.append("=== PASO 2: Aplicar ajustes según reglas SII ===")
     
-    A = A_calc
-    B = B_calc
-    C = C_calc
-    D = D_calc
-    E = E_calc
+    # Asignamos los cálculos básicos a las variables definitivas
+    A = aCalc
+    B = bCalc
+    C = cCalc
+    D = dCalc
+    E = eCalc
     
-    es_d8_impar = d8 % 2 != 0
-    es_d1_igual_d2 = d1 == d2
-    es_d5_d6_mult_3 = (d5 + d6) % 3 == 0
+    # Evaluamos las condiciones especiales para forzar los diferentes tipos de cónicas
+    esD8Impar = d8 % 2 != 0
+    esD1IgualD2 = d1 == d2
+    esD5D6Mult3 = (d5 + d6) % 3 == 0
     
-    pasos.append(f"Verificar d8 impar: {d8} es {'impar' if es_d8_impar else 'par'}")
-    pasos.append(f"Verificar d1 = d2: {d1} {'=' if es_d1_igual_d2 else '≠'} {d2}")
-    pasos.append(f"Verificar (d5 + d6) múltiplo de 3: ({d5} + {d6}) = {d5 + d6} {'es' if es_d5_d6_mult_3 else 'no es'} múltiplo de 3")
+    pasos.append(f"Verificar d8 impar: {d8} es {'impar' if esD8Impar else 'par'}")
+    pasos.append(f"Verificar d1 = d2: {d1} {'=' if esD1IgualD2 else '≠'} {d2}")
+    pasos.append(f"Verificar (d5 + d6) múltiplo de 3: ({d5} + {d6}) = {d5 + d6} {'es' if esD5D6Mult3 else 'no es'} múltiplo de 3")
     
     # Aplicar ajustes en orden
-    if es_d8_impar:
+    if esD8Impar:
         B = -B
         pasos.append("-> Ajuste aplicado: d8 es impar, por lo tanto B cambia de signo (B = -B)")
         
-    if es_d1_igual_d2:
+    if esD1IgualD2:
         B = A
         pasos.append("-> Ajuste aplicado: d1 = d2, por lo tanto B = A (genera circunferencia)")
         
-    if es_d5_d6_mult_3:
+    if esD5D6Mult3:
         A = 0
         pasos.append("-> Ajuste aplicado: (d5 + d6) es múltiplo de 3, por lo tanto A = 0 (genera parábola)")
     
