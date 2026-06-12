@@ -253,14 +253,34 @@ class Graficador:
         if len(tramoActual) > 1:
             self.trazarLinea(tramoActual, colorFuncion)
 
-        # Dibujar asíntota vertical si es discontinuidad infinita
+        # Marcadores visuales según tipo de discontinuidad
         if tipoDiscontinuidad == "infinita":
+            # Asíntota vertical (línea punteada)
             pixelAsintota = self.aPixelX(puntoAnalisis)
             altoLienzo = self.lienzo.winfo_height()
             self.lienzo.create_line(pixelAsintota, 0, pixelAsintota, altoLienzo,
                                     fill="#adb5bd", dash=(6, 4))
             self.lienzo.create_text(pixelAsintota + 8, 16, text=f"x = {puntoAnalisis}",
                                     fill="#adb5bd", anchor=tk.W, font=("Arial", 9, "italic"))
+
+        elif tipoDiscontinuidad == "removible":
+            # Círculo vacío: indica que el punto NO está definido
+            valorLimite = puntoAnalisis + self.datos["funcion"]["digitos"][0]  # a + d1
+            pxHueco = self.aPixelX(puntoAnalisis)
+            pyHueco = self.aPixelY(valorLimite)
+            radio = 5
+            self.lienzo.create_oval(pxHueco - radio, pyHueco - radio,
+                                    pxHueco + radio, pyHueco + radio,
+                                    outline=colorFuncion, width=2, fill="#f8f9fa")
+
+        elif tipoDiscontinuidad == "salto":
+            # Puntos llenos en cada lado del salto
+            d2 = self.datos["funcion"]["digitos"][1]
+            d4 = self.datos["funcion"]["digitos"][3]
+            valorIzq = puntoAnalisis + d2
+            valorDer = puntoAnalisis + d4
+            self.marcarPunto(puntoAnalisis, valorIzq, "lím izq")
+            self.marcarPunto(puntoAnalisis, valorDer, "lím der")
 
     # ==========================================
     # UTILIDADES DE DIBUJO

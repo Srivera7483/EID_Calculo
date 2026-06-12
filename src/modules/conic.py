@@ -80,8 +80,13 @@ def construirEcuacionGeneral(digitos, v):
         pasos.append("-> Ajuste aplicado: d1 = d2, por lo tanto B = A (genera circunferencia)")
         
     if esD5D6Mult3:
-        A = 0
-        pasos.append("-> Ajuste aplicado: (d5 + d6) es múltiplo de 3, por lo tanto A = 0 (genera parábola)")
+        esD7Par = d7 % 2 == 0
+        if esD7Par:
+            B = 0
+            pasos.append(f"-> Ajuste aplicado: (d5 + d6) múltiplo de 3 y d7={d7} es par → B = 0 (parábola vertical)")
+        else:
+            A = 0
+            pasos.append(f"-> Ajuste aplicado: (d5 + d6) múltiplo de 3 y d7={d7} es impar → A = 0 (parábola horizontal)")
     
     pasos.append("")
     pasos.append("=== Ecuación General Final ===")
