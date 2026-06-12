@@ -5,206 +5,215 @@
 
 import tkinter as tk
 from tkinter import ttk
-from modules.plotter import Plotter
+from modules.plotter import Graficador
 
 
-def iniciarInterfaz(resultadoValidacion, ecuacionTexto, formaCanonicaData, analisisFunciones):
+def iniciarInterfaz(resultadoValidacion, ecuacionTexto, datosConica, analisisFunciones):
     """Inicia la ventana principal con tres pestañas."""
-    root = tk.Tk()
-    root.title("EID_Calculo – Cónicas y Funciones")
-    root.geometry("1200x800")
-    root.minsize(1000, 650)
+    ventana = tk.Tk()
+    ventana.title("EID_Calculo – Cónicas y Funciones por Tramos")
+    ventana.geometry("1200x800")
+    ventana.minsize(1000, 650)
 
-    notebook = ttk.Notebook(root)
-    notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    pestanas = ttk.Notebook(ventana)
+    pestanas.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-    tab1 = ttk.Frame(notebook)
-    tab2 = ttk.Frame(notebook)
-    tab3 = ttk.Frame(notebook)
-    notebook.add(tab1, text="  Cálculo de RUT  ")
-    notebook.add(tab2, text="  Forma Cónica  ")
-    notebook.add(tab3, text="  Límites  ")
+    pestanaRut = ttk.Frame(pestanas)
+    pestanaConica = ttk.Frame(pestanas)
+    pestanaLimites = ttk.Frame(pestanas)
+    pestanas.add(pestanaRut, text="  Cálculo de RUT  ")
+    pestanas.add(pestanaConica, text="  Forma Cónica  ")
+    pestanas.add(pestanaLimites, text="  Límites  ")
 
-    _tab_rut(tab1, resultadoValidacion)
-    _tab_conica(tab2, ecuacionTexto, formaCanonicaData)
-    _tab_limites(tab3, analisisFunciones)
+    construirPestanaRut(pestanaRut, resultadoValidacion)
+    construirPestanaConica(pestanaConica, ecuacionTexto, datosConica)
+    construirPestanaLimites(pestanaLimites, analisisFunciones)
 
-    root.mainloop()
+    ventana.mainloop()
 
 
-# --- Pestaña 1: RUT ---
+# ==========================================
+# PESTAÑA 1: CÁLCULO DE RUT
+# ==========================================
 
-def _tab_rut(frame, resultado):
+def construirPestanaRut(contenedor, resultado):
     """Muestra el algoritmo Módulo 11 paso a paso."""
-    ttk.Label(frame, text="Validación de RUT – Algoritmo Módulo 11",
+    ttk.Label(contenedor, text="Validación de RUT – Algoritmo Módulo 11",
               font=("Arial", 16, "bold")).pack(pady=(20, 5))
 
-    valido = resultado.get("valido", False)
-    color = "green" if valido else "red"
-    texto = "✓ RUT VÁLIDO" if valido else "✗ RUT INVÁLIDO"
-    ttk.Label(frame, text=texto, font=("Arial", 14, "bold"),
-              foreground=color).pack(pady=(0, 15))
+    esValido = resultado.get("valido", False)
+    colorEstado = "green" if esValido else "red"
+    textoEstado = "✓ RUT VÁLIDO" if esValido else "✗ RUT INVÁLIDO"
+    ttk.Label(contenedor, text=textoEstado, font=("Arial", 14, "bold"),
+              foreground=colorEstado).pack(pady=(0, 15))
 
     if "detalles" not in resultado:
         return
 
-    det = resultado["detalles"]
+    detalles = resultado["detalles"]
 
-    # Info del RUT
-    info = ttk.LabelFrame(frame, text="Datos del RUT", padding=10)
-    info.pack(fill=tk.X, padx=20, pady=(0, 10))
-    ttk.Label(info, text=f"Cuerpo: {det['cuerpo']}    |    DV ingresado: {det['dvDado']}",
+    # Información del RUT
+    seccionInfo = ttk.LabelFrame(contenedor, text="Datos del RUT", padding=10)
+    seccionInfo.pack(fill=tk.X, padx=20, pady=(0, 10))
+    ttk.Label(seccionInfo,
+              text=f"Cuerpo: {detalles['cuerpo']}    |    DV ingresado: {detalles['dvDado']}",
               font=("Arial", 11)).pack(anchor=tk.W)
 
     # Tabla de multiplicaciones
-    tf = ttk.LabelFrame(frame, text="Tabla de Multiplicaciones (derecha → izquierda)", padding=10)
-    tf.pack(fill=tk.X, padx=20, pady=(0, 10))
+    seccionTabla = ttk.LabelFrame(contenedor, text="Tabla de Multiplicaciones (derecha → izquierda)", padding=10)
+    seccionTabla.pack(fill=tk.X, padx=20, pady=(0, 10))
 
-    cols = ("Posición", "Dígito", "Multiplicador", "Producto")
-    tabla = ttk.Treeview(tf, columns=cols, show="headings", height=8)
-    for col in cols:
-        tabla.heading(col, text=col)
-        tabla.column(col, anchor=tk.CENTER, width=120)
+    columnas = ("Posición", "Dígito", "Multiplicador", "Producto")
+    tabla = ttk.Treeview(seccionTabla, columns=columnas, show="headings", height=8)
+    for columna in columnas:
+        tabla.heading(columna, text=columna)
+        tabla.column(columna, anchor=tk.CENTER, width=120)
     tabla.pack(fill=tk.X)
 
-    for i, item in enumerate(det["productos"]):
-        tabla.insert("", tk.END, values=(i + 1, item["digito"], item["multiplicador"], item["producto"]))
+    for indice, item in enumerate(detalles["productos"]):
+        tabla.insert("", tk.END, values=(indice + 1, item["digito"], item["multiplicador"], item["producto"]))
 
-    # Cálculos finales
-    calc = ttk.LabelFrame(frame, text="Desarrollo del Cálculo", padding=10)
-    calc.pack(fill=tk.X, padx=20, pady=(0, 10))
+    # Desarrollo del cálculo
+    seccionCalculo = ttk.LabelFrame(contenedor, text="Desarrollo del Cálculo", padding=10)
+    seccionCalculo.pack(fill=tk.X, padx=20, pady=(0, 10))
 
-    productos_str = " + ".join(str(p["producto"]) for p in det["productos"])
-    for texto in [
-        f"Suma de productos:  {productos_str}  =  {det['suma']}",
-        f"Resto (Suma mod 11):  {det['suma']} mod 11  =  {det['resto']}",
-        f"DV esperado (11 − Resto):  11 − {det['resto']}  =  {det['dvEsperado']}",
-    ]:
-        ttk.Label(calc, text=texto, font=("Arial", 11)).pack(anchor=tk.W, pady=2)
+    sumaProductos = " + ".join(str(p["producto"]) for p in detalles["productos"])
+    lineasCalculo = [
+        f"Suma de productos:  {sumaProductos}  =  {detalles['suma']}",
+        f"Resto (Suma mod 11):  {detalles['suma']} mod 11  =  {detalles['resto']}",
+        f"DV esperado (11 − Resto):  11 − {detalles['resto']}  =  {detalles['dvEsperado']}",
+    ]
+    for linea in lineasCalculo:
+        ttk.Label(seccionCalculo, text=linea, font=("Arial", 11)).pack(anchor=tk.W, pady=2)
 
-    ttk.Separator(calc, orient="horizontal").pack(fill=tk.X, pady=8)
-    ttk.Label(calc, text=f"DV calculado: {det['dvEsperado']}   vs   DV ingresado: {det['dvDado']}",
+    ttk.Separator(seccionCalculo, orient="horizontal").pack(fill=tk.X, pady=8)
+    ttk.Label(seccionCalculo,
+              text=f"DV calculado: {detalles['dvEsperado']}   vs   DV ingresado: {detalles['dvDado']}",
               font=("Arial", 12, "bold")).pack(anchor=tk.W)
 
 
-# --- Pestaña 2: Cónica ---
+# ==========================================
+# PESTAÑA 2: FORMA CÓNICA
+# ==========================================
 
-def _tab_conica(frame, ecuacionTexto, datos):
-    """Panel izquierdo con info + panel derecho con gráfica."""
+def construirPestanaConica(contenedor, ecuacionTexto, datosConica):
+    """Panel izquierdo con información + panel derecho con gráfica."""
     # Panel izquierdo
-    izq = ttk.Frame(frame, width=420)
-    izq.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
-    izq.pack_propagate(False)
+    panelIzquierdo = ttk.Frame(contenedor, width=420)
+    panelIzquierdo.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+    panelIzquierdo.pack_propagate(False)
 
-    # Ecuación general
-    _seccion(izq, "Ecuación General", ecuacionTexto)
+    crearSeccion(panelIzquierdo, "Ecuación General", ecuacionTexto)
+    crearSeccion(panelIzquierdo, "Clasificación", f"Tipo: {datosConica.get('tipo', '—')}")
 
-    # Clasificación
-    _seccion(izq, "Clasificación", f"Tipo: {datos.get('tipo', '—')}")
-
-    # Forma canónica
-    texto_canon = datos.get("formaCanonica", "—")
-    centro = datos.get("centro")
+    textoCanonica = datosConica.get("formaCanonica", "—")
+    centro = datosConica.get("centro")
     if centro:
-        texto_canon += f"\nCentro/Vértice: {centro}"
-    _seccion(izq, "Forma Canónica", texto_canon)
+        textoCanonica += f"\nCentro/Vértice: {centro}"
+    crearSeccion(panelIzquierdo, "Forma Canónica", textoCanonica)
 
-    # Campos de defensa oral (vacíos)
-    _campos_defensa(izq, "Campos de Defensa Oral",
-                    ["Centro", "Vértices", "Focos",
-                     "Eje mayor / transverso", "Eje menor / conjugado", "Directriz"])
+    crearCamposDefensa(panelIzquierdo, "Campos de Defensa Oral",
+                       ["Centro", "Vértices", "Focos",
+                        "Eje mayor / transverso", "Eje menor / conjugado", "Directriz"])
 
     # Panel derecho: gráfica
-    der = ttk.Frame(frame)
-    der.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(0, 10), pady=10)
-    ttk.Label(der, text="Gráfica de la Cónica", font=("Arial", 12, "bold")).pack(pady=(0, 5))
+    panelDerecho = ttk.Frame(contenedor)
+    panelDerecho.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(0, 10), pady=10)
+    ttk.Label(panelDerecho, text="Gráfica de la Cónica", font=("Arial", 12, "bold")).pack(pady=(0, 5))
 
-    canvas = tk.Canvas(der, bg="#f8f9fa", highlightthickness=0, bd=0)
-    canvas.pack(fill=tk.BOTH, expand=True)
-    Plotter(canvas).set_data("conica", datos)
+    lienzo = tk.Canvas(panelDerecho, bg="#f8f9fa", highlightthickness=0, bd=0)
+    lienzo.pack(fill=tk.BOTH, expand=True)
+    Graficador(lienzo).cargarDatos("conica", datosConica)
 
 
-# --- Pestaña 3: Límites ---
+# ==========================================
+# PESTAÑA 3: LÍMITES
+# ==========================================
 
-def _tab_limites(frame, analisis):
+def construirPestanaLimites(contenedor, analisis):
     """Panel izquierdo con análisis + panel derecho con gráfica."""
-    funcion = analisis["funcion"]
-    limites = analisis["limites"]
+    datosFuncion = analisis["funcion"]
+    datosLimites = analisis["limites"]
 
     # Panel izquierdo
-    izq = ttk.Frame(frame, width=450)
-    izq.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
-    izq.pack_propagate(False)
+    panelIzquierdo = ttk.Frame(contenedor, width=450)
+    panelIzquierdo.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+    panelIzquierdo.pack_propagate(False)
 
-    # Regla de selección
-    d8 = funcion["digitos"][7]
-    residuo = d8 % 3
-    tipos = {0: "Removible", 1: "Salto", 2: "Infinita"}
-    _seccion(izq, "Regla de Selección",
-             f"d8 = {d8}   →   d8 mod 3 = {residuo}   →   Discontinuidad {tipos[residuo]}")
+    # Regla de selección del caso
+    digitoD8 = datosFuncion["digitos"][7]
+    residuo = digitoD8 % 3
+    nombresTipos = {0: "Removible", 1: "Salto", 2: "Infinita"}
+    crearSeccion(panelIzquierdo, "Regla de Selección",
+                 f"d8 = {digitoD8}   →   d8 mod 3 = {residuo}   →   Discontinuidad {nombresTipos[residuo]}")
 
     # Función generada
-    _seccion(izq, "Función Generada",
-             f"f(x) = {funcion['funcionFormula']}\nPunto de análisis: x = {funcion['puntoAnalisis']}")
+    crearSeccion(panelIzquierdo, "Función Generada",
+                 f"f(x) = {datosFuncion['funcionFormula']}\n"
+                 f"Punto de análisis: x = {datosFuncion['puntoAnalisis']}")
 
     # Tabla de valores
-    tf = ttk.LabelFrame(izq, text="Tabla de Valores", padding=8)
-    tf.pack(fill=tk.X, pady=(0, 8))
+    seccionTabla = ttk.LabelFrame(panelIzquierdo, text="Tabla de Valores", padding=8)
+    seccionTabla.pack(fill=tk.X, pady=(0, 8))
 
-    cols = ("x (izq)", "f(x)", "x (der)", "f(x) ")
-    tabla = ttk.Treeview(tf, columns=cols, show="headings", height=4)
-    for col in cols:
-        tabla.heading(col, text=col)
-        tabla.column(col, anchor=tk.CENTER, width=95)
-    tabla.pack(fill=tk.X)
+    columnas = ("x (izq)", "f(x)", "x (der)", "f(x) ")
+    tablaValores = ttk.Treeview(seccionTabla, columns=columnas, show="headings", height=4)
+    for columna in columnas:
+        tablaValores.heading(columna, text=columna)
+        tablaValores.column(columna, anchor=tk.CENTER, width=95)
+    tablaValores.pack(fill=tk.X)
 
-    keys_i = sorted(limites["valores"]["izq"].keys())
-    keys_d = sorted(limites["valores"]["der"].keys())
-    for i in range(min(len(keys_i), len(keys_d))):
-        xi, xd = keys_i[i], keys_d[i]
-        fi = limites["valores"]["izq"][xi]
-        fd = limites["valores"]["der"][xd]
-        fi_str = f"{fi:.4f}" if fi is not None else "Indef."
-        fd_str = f"{fd:.4f}" if fd is not None else "Indef."
-        tabla.insert("", tk.END, values=(f"{xi:.4f}", fi_str, f"{xd:.4f}", fd_str))
+    clavesIzquierda = sorted(datosLimites["valores"]["izq"].keys())
+    clavesDerecha = sorted(datosLimites["valores"]["der"].keys())
+    for i in range(min(len(clavesIzquierda), len(clavesDerecha))):
+        xIzq = clavesIzquierda[i]
+        xDer = clavesDerecha[i]
+        valorIzq = datosLimites["valores"]["izq"][xIzq]
+        valorDer = datosLimites["valores"]["der"][xDer]
+        textoIzq = f"{valorIzq:.4f}" if valorIzq is not None else "Indef."
+        textoDer = f"{valorDer:.4f}" if valorDer is not None else "Indef."
+        tablaValores.insert("", tk.END, values=(f"{xIzq:.4f}", textoIzq, f"{xDer:.4f}", textoDer))
 
     # Resultado de límites
-    a = funcion["puntoAnalisis"]
-    _seccion(izq, "Resultado de Límites",
-             f"lím(x→{a}⁻) = {limites['limiteIzquierda']}\n"
-             f"lím(x→{a}⁺) = {limites['limiteDerecha']}\n"
-             f"¿Existe el límite? {'Sí' if limites['existeLimite'] else 'No'}")
+    puntoA = datosFuncion["puntoAnalisis"]
+    crearSeccion(panelIzquierdo, "Resultado de Límites",
+                 f"lím(x→{puntoA}⁻) = {datosLimites['limiteIzquierda']}\n"
+                 f"lím(x→{puntoA}⁺) = {datosLimites['limiteDerecha']}\n"
+                 f"¿Existe el límite? {'Sí' if datosLimites['existeLimite'] else 'No'}")
 
     # Campos de defensa oral
-    _campos_defensa(izq, "Campos de Defensa Oral",
-                    ["Límite por la izquierda", "Límite por la derecha",
-                     "¿Existe el límite?", "Valor f(a)", "¿Es continua?",
-                     "Tipo de discontinuidad", "Justificación"])
+    crearCamposDefensa(panelIzquierdo, "Campos de Defensa Oral",
+                       ["Límite por la izquierda", "Límite por la derecha",
+                        "¿Existe el límite?", "Valor f(a)", "¿Es continua?",
+                        "Tipo de discontinuidad", "Justificación"])
 
     # Panel derecho: gráfica
-    der = ttk.Frame(frame)
-    der.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(0, 10), pady=10)
-    ttk.Label(der, text="Gráfica de la Función", font=("Arial", 12, "bold")).pack(pady=(0, 5))
+    panelDerecho = ttk.Frame(contenedor)
+    panelDerecho.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(0, 10), pady=10)
+    ttk.Label(panelDerecho, text="Gráfica de la Función", font=("Arial", 12, "bold")).pack(pady=(0, 5))
 
-    canvas = tk.Canvas(der, bg="#f8f9fa", highlightthickness=0, bd=0)
-    canvas.pack(fill=tk.BOTH, expand=True)
-    Plotter(canvas).set_data("funcion", analisis)
+    lienzo = tk.Canvas(panelDerecho, bg="#f8f9fa", highlightthickness=0, bd=0)
+    lienzo.pack(fill=tk.BOTH, expand=True)
+    Graficador(lienzo).cargarDatos("funcion", analisis)
 
 
-# --- Helpers reutilizables ---
+# ==========================================
+# FUNCIONES AUXILIARES REUTILIZABLES
+# ==========================================
 
-def _seccion(parent, titulo, contenido):
-    """Crea un LabelFrame con texto."""
-    sec = ttk.LabelFrame(parent, text=titulo, padding=8)
-    sec.pack(fill=tk.X, pady=(0, 8))
-    ttk.Label(sec, text=contenido, font=("Arial", 10), wraplength=380).pack(anchor=tk.W)
+def crearSeccion(contenedorPadre, titulo, contenido):
+    """Crea un recuadro con título y texto dentro."""
+    seccion = ttk.LabelFrame(contenedorPadre, text=titulo, padding=8)
+    seccion.pack(fill=tk.X, pady=(0, 8))
+    ttk.Label(seccion, text=contenido, font=("Arial", 10), wraplength=380).pack(anchor=tk.W)
 
-def _campos_defensa(parent, titulo, campos):
-    """Crea campos de texto vacíos para la defensa oral."""
-    sec = ttk.LabelFrame(parent, text=titulo, padding=8)
-    sec.pack(fill=tk.X, pady=(0, 4))
-    for campo in campos:
-        row = ttk.Frame(sec)
-        row.pack(fill=tk.X, pady=1)
-        ttk.Label(row, text=f"{campo}:", width=24).pack(side=tk.LEFT)
-        ttk.Entry(row).pack(side=tk.RIGHT, expand=True, fill=tk.X)
+
+def crearCamposDefensa(contenedorPadre, titulo, listaCampos):
+    """Crea campos de texto vacíos para completar durante la defensa oral."""
+    seccion = ttk.LabelFrame(contenedorPadre, text=titulo, padding=8)
+    seccion.pack(fill=tk.X, pady=(0, 4))
+    for nombreCampo in listaCampos:
+        fila = ttk.Frame(seccion)
+        fila.pack(fill=tk.X, pady=1)
+        ttk.Label(fila, text=f"{nombreCampo}:", width=24).pack(side=tk.LEFT)
+        ttk.Entry(fila).pack(side=tk.RIGHT, expand=True, fill=tk.X)
