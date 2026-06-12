@@ -19,7 +19,7 @@ class Graficador:
         self.arrastre_y = 0
 
         # Vincular eventos del ratón
-        lienzo.bind("<Configure>", lambda e: self.dibujarTodo())
+        lienzo.bind("<Configure>", self.dibujarTodo)
         lienzo.bind("<ButtonPress-1>", self.inicioArrastre)
         lienzo.bind("<B1-Motion>", self.moverPlano)
         lienzo.bind("<Button-4>", lambda e: self.hacerZoom(5))       # Linux rueda arriba
@@ -54,10 +54,12 @@ class Graficador:
 
     def centroX(self):
         """Retorna la posición X del origen (0,0) en pixeles."""
+        self.lienzo.update_idletasks()
         return self.lienzo.winfo_width() // 2 + self.desplazamientoX
 
     def centroY(self):
         """Retorna la posición Y del origen (0,0) en pixeles."""
+        self.lienzo.update_idletasks()
         return self.lienzo.winfo_height() // 2 + self.desplazamientoY
 
     def aPixelX(self, xMatematico):
@@ -76,17 +78,29 @@ class Graficador:
         """Guarda los datos matemáticos y dibuja la gráfica."""
         self.tipoGrafico = tipoGrafico
         self.datos = datos
+        self.lienzo.update_idletasks()
         self.dibujarTodo()
 
     # ==========================================
     # DIBUJO PRINCIPAL
     # ==========================================
 
-    def dibujarTodo(self):
+    def dibujarTodo(self, evento=None):
         """Limpia el lienzo y redibuja todo: fondo, cuadrícula, ejes y gráfica."""
         self.lienzo.delete("all")
-        ancho = self.lienzo.winfo_width()
-        alto = self.lienzo.winfo_height()
+        
+        # Si venimos de un evento Configure, usamos sus medidas que son las más recientes
+        if evento and hasattr(evento, 'width') and evento.width > 10:
+            ancho = evento.width
+            alto = evento.height
+        else:
+            self.lienzo.update_idletasks()
+            ancho = self.lienzo.winfo_width()
+            alto = self.lienzo.winfo_height()
+            
+        # Si el lienzo aún no se inicializa, le damos un tamaño por defecto
+        if ancho < 10: ancho = 800
+        if alto < 10: alto = 600
 
         # Fondo gris claro (sin bordes blancos)
         self.lienzo.create_rectangle(-2, -2, ancho + 4, alto + 4, fill="#f8f9fa", outline="")
