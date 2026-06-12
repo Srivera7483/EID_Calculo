@@ -3,7 +3,7 @@
 
 from modules.rut_validator import validarRutConPasos, extraerDigitos, calcularV
 from modules.conic import construirEcuacionGeneral, clasificarConica, mostrarEcuacion
-from modules.transformations import transformarACanonica
+from modules.transformations import transformarACanonica, transformarAGeneral
 # from modules.plotter import graficarConica
 from modules.functions import analizarFuncionPorTramos
 from ui.interface import iniciarInterfaz
@@ -62,6 +62,17 @@ def main():
     print("\n--- Transformación a Forma Canónica ---")
     formaCanonicaData = transformarACanonica(ecuacionGeneralData)
     for paso in formaCanonicaData['pasos']:
+        print(paso)
+    
+    # Paso 6b: Transformación inversa (Canónica → General)
+    print("\n--- Transformación Inversa: Canónica → General ---")
+    inversa = transformarAGeneral(
+        formaCanonicaData['tipo'],
+        formaCanonicaData['formaCanonica'],
+        formaCanonicaData['centro'],
+        formaCanonicaData['parametros']
+    )
+    for paso in inversa['pasos']:
         print(paso)
     
     print("\n" + "="*50)

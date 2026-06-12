@@ -1,298 +1,337 @@
-# plotter.py - Motor de renderizado visual de matemáticas
+# plotter.py - Motor de graficación interactivo
 # ============================================================================
-# Este módulo se encarga de transformar cálculos matemáticos en gráficas visuales
-# utilizando exclusivamente las herramientas nativas de Tkinter (Canvas),
-# respetando la restricción de no usar librerías como Matplotlib o NumPy.
+# Renderiza cónicas y funciones por tramos en un Canvas de Tkinter.
+# Soporta desplazamiento (pan) con clic izquierdo y zoom con la rueda.
+# No usa librerías externas (numpy, matplotlib, etc.) según las restricciones.
+# ============================================================================
 
 import tkinter as tk
 
+
 class Plotter:
     """
-    Motor de graficación interactivo. Soporta desplazamiento (Pan) y Zoom.
-    Mantiene un estado interno de la data para poder redibujarse dinámicamente.
+    Graficador interactivo sobre un Canvas de Tkinter.
+    
+    Funcionalidades:
+        - Dibuja ejes cartesianos con numeración dinámica
+        - Cuadrícula tipo papel milimetrado
+        - Pan (arrastre con clic izquierdo)
+        - Zoom (rueda del ratón)
+        - Renderiza cónicas: circunferencia, elipse, hipérbola, parábola
+        - Renderiza funciones por tramos con detección de discontinuidades
     """
-    def __init__(self, canvas, width=800, height=600):
-        self.canvas = canvas
-        self.width = width
-        self.height = height
 
-        # Escala matemática inicial (píxeles por unidad)
+    # ── Colores del tema ────────────────────────────────────────────────
+    COLOR_FONDO      = "#f8f9fa"   # Gris muy claro
+    COLOR_CUADRICULA = "#e0e0e0"   # Gris suave para la cuadrícula
+    COLOR_EJE        = "#495057"   # Gris oscuro para los ejes
+    COLOR_NUMERO     = "#6c757d"   # Gris medio para las etiquetas
+    COLOR_CONICA     = "#007bff"   # Azul para cónicas
+    COLOR_FUNCION    = "#dc3545"   # Rojo para funciones
+    COLOR_ASINTOTA   = "#adb5bd"   # Gris claro para asíntotas
+    COLOR_PUNTO      = "#212529"   # Negro para puntos destacados
+
+    def __init__(self, canvas):
+        self.canvas = canvas
+
+        # Escala: cuántos píxeles representa una unidad matemática
         self.scale = 40
 
-        # Centro del plano en píxeles (origen 0,0)
-        self.center_x = width // 2
-        self.center_y = height // 2
-        
-        # Datos a graficar (se llenan después)
+        # Desplazamiento del origen (0,0) respecto a la esquina superior-izquierda
+        # Se calcula dinámicamente al renderizar
+        self.offset_x = 0
+        self.offset_y = 0
+
+        # Datos matemáticos a graficar
         self.tipo_grafico = None
         self.data = None
-        
-        # Variables de estado para el arrastre
-        self.drag_data = {"x": 0, "y": 0}
-        
-        # Vincular eventos del ratón para interactividad
-        self.canvas.bind("<ButtonPress-1>", self.on_press)
-        self.canvas.bind("<B1-Motion>", self.on_drag)
-        
-        # Eventos de Zoom (Rueda del ratón: Windows/Mac y Linux)
-        self.canvas.bind("<MouseWheel>", self.on_zoom)
-        self.canvas.bind("<Button-4>", self.on_zoom_in)   # Linux scroll up
-        self.canvas.bind("<Button-5>", self.on_zoom_out)  # Linux scroll down
 
-    # =========================================
-    # EVENTOS DE INTERACTIVIDAD (PAN & ZOOM)
-    # =========================================
-    def on_press(self, event):
-        """Inicia el movimiento de arrastre."""
-        self.drag_data["x"] = event.x
-        self.drag_data["y"] = event.y
+        # Estado del arrastre
+        self._drag_x = 0
+        self._drag_y = 0
 
-    def on_drag(self, event):
-        """Desplaza el plano y redibuja para mantener la cuadrícula infinita."""
-        dx = event.x - self.drag_data["x"]
-        dy = event.y - self.drag_data["y"]
-        
-        self.center_x += dx
-        self.center_y += dy
-        
-        self.drag_data["x"] = event.x
-        self.drag_data["y"] = event.y
-        self.renderizar_todo()
+        # ── Vincular eventos ────────────────────────────────────────────
+        self.canvas.bind("<Configure>", self._on_resize)
+        self.canvas.bind("<ButtonPress-1>", self._on_press)
+        self.canvas.bind("<B1-Motion>", self._on_drag)
+        # Zoom: Linux usa Button-4/5, Windows/Mac usa MouseWheel
+        self.canvas.bind("<Button-4>", lambda e: self._zoom(5))
+        self.canvas.bind("<Button-5>", lambda e: self._zoom(-5))
+        self.canvas.bind("<MouseWheel>", lambda e: self._zoom(5 if e.delta > 0 else -5))
 
-    def on_zoom(self, event):
-        """Maneja el zoom para Windows/Mac."""
-        if event.delta > 0:
-            self.scale = min(self.scale + 5, 200) # Límite máx
-        elif event.delta < 0:
-            self.scale = max(self.scale - 5, 10)  # Límite mín
-        self.renderizar_todo()
+    # ════════════════════════════════════════════════════════════════════
+    # EVENTOS DE INTERACTIVIDAD
+    # ════════════════════════════════════════════════════════════════════
 
-    def on_zoom_in(self, event):
-        """Zoom in para Linux."""
-        self.scale = min(self.scale + 5, 200)
-        self.renderizar_todo()
+    def _on_resize(self, event):
+        """Redibuja al cambiar el tamaño de la ventana."""
+        self._renderizar()
 
-    def on_zoom_out(self, event):
-        """Zoom out para Linux."""
-        self.scale = max(self.scale - 5, 10)
-        self.renderizar_todo()
+    def _on_press(self, event):
+        """Guarda posición inicial del arrastre."""
+        self._drag_x = event.x
+        self._drag_y = event.y
 
-    # =========================================
+    def _on_drag(self, event):
+        """Desplaza el plano según el movimiento del ratón."""
+        self.offset_x += event.x - self._drag_x
+        self.offset_y += event.y - self._drag_y
+        self._drag_x = event.x
+        self._drag_y = event.y
+        self._renderizar()
+
+    def _zoom(self, delta):
+        """Cambia la escala (zoom in/out) con límites."""
+        self.scale = max(10, min(200, self.scale + delta))
+        self._renderizar()
+
+    # ════════════════════════════════════════════════════════════════════
     # CONVERSIÓN DE COORDENADAS
-    # =========================================
-    def convertir_x(self, x):
-        """Convierte X matemático a X en píxeles."""
-        return self.center_x + (x * self.scale)
+    # ════════════════════════════════════════════════════════════════════
 
-    def convertir_y(self, y):
-        """Convierte Y matemático a Y en píxeles (Y invertido en pantallas)."""
-        return self.center_y - (y * self.scale)
+    def _cx(self):
+        """Centro X actual del canvas (origen matemático en píxeles)."""
+        return self.canvas.winfo_width() // 2 + self.offset_x
 
-    # =========================================
-    # RENDERIZADO PRINCIPAL
-    # =========================================
+    def _cy(self):
+        """Centro Y actual del canvas (origen matemático en píxeles)."""
+        return self.canvas.winfo_height() // 2 + self.offset_y
+
+    def _to_px(self, x):
+        """Convierte coordenada X matemática a píxeles."""
+        return self._cx() + x * self.scale
+
+    def _to_py(self, y):
+        """Convierte coordenada Y matemática a píxeles (eje Y invertido)."""
+        return self._cy() - y * self.scale
+
+    # ════════════════════════════════════════════════════════════════════
+    # PUNTO DE ENTRADA
+    # ════════════════════════════════════════════════════════════════════
+
     def set_data(self, tipo_grafico, data):
-        """Guarda la información matemática y dispara el dibujo inicial."""
+        """Guarda los datos y lanza el primer renderizado."""
         self.tipo_grafico = tipo_grafico
         self.data = data
-        self.renderizar_todo()
+        self._renderizar()
 
-    def renderizar_todo(self):
-        """Limpia el canvas y redibuja el fondo, los ejes y la matemática actual."""
+    # ════════════════════════════════════════════════════════════════════
+    # RENDERIZADO PRINCIPAL
+    # ════════════════════════════════════════════════════════════════════
+
+    def _renderizar(self):
+        """Limpia y redibuja todo el canvas."""
         self.canvas.delete("all")
-        
-        # Fondo moderno gris muy claro
-        self.canvas.create_rectangle(0, 0, self.width, self.height, fill="#f8f9fa", outline="")
-        
-        self.dibujar_cuadricula()
-        self.dibujar_ejes()
-        
-        # Enrutar el dibujo matemático
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+
+        # Fondo completo (elimina cualquier borde blanco residual)
+        self.canvas.create_rectangle(-2, -2, w + 4, h + 4,
+                                     fill=self.COLOR_FONDO, outline="")
+
+        self._dibujar_cuadricula(w, h)
+        self._dibujar_ejes(w, h)
+
+        # Dibujar los datos matemáticos
         if self.tipo_grafico == "conica" and self.data:
-            self.renderizar_conica()
+            self._renderizar_conica()
         elif self.tipo_grafico == "funcion" and self.data:
-            self.renderizar_funcion()
-            
-        self.canvas.update_idletasks()
+            self._renderizar_funcion(w)
 
-    # =========================================
-    # DISEÑO DE FONDO (CUADRÍCULA Y EJES)
-    # =========================================
-    def dibujar_cuadricula(self):
-        """Dibuja una cuadrícula infinita basada en la escala y centro actuales."""
-        # Encontrar el inicio matemático de la pantalla
-        min_x_math = int((0 - self.center_x) / self.scale) - 1
-        max_x_math = int((self.width - self.center_x) / self.scale) + 1
-        
-        min_y_math = int((self.center_y - self.height) / self.scale) - 1
-        max_y_math = int((self.center_y - 0) / self.scale) + 1
+    # ════════════════════════════════════════════════════════════════════
+    # CUADRÍCULA Y EJES
+    # ════════════════════════════════════════════════════════════════════
 
-        # Líneas verticales
-        for x in range(min_x_math, max_x_math):
-            px = self.convertir_x(x)
-            self.canvas.create_line(px, 0, px, self.height, fill="#e9ecef", dash=(2, 4))
-            
-        # Líneas horizontales
-        for y in range(min_y_math, max_y_math):
-            py = self.convertir_y(y)
-            self.canvas.create_line(0, py, self.width, py, fill="#e9ecef", dash=(2, 4))
+    def _dibujar_cuadricula(self, w, h):
+        """Dibuja líneas punteadas de fondo (papel milimetrado)."""
+        cx, cy = self._cx(), self._cy()
 
-    def dibujar_ejes(self):
-        """Dibuja los ejes X e Y engrosados con numeración."""
-        # Eje X
-        self.canvas.create_line(0, self.center_y, self.width, self.center_y, fill="#495057", width=2)
-        # Eje Y
-        self.canvas.create_line(self.center_x, 0, self.center_x, self.height, fill="#495057", width=2)
+        # Rango visible en unidades matemáticas
+        x_min = int((0 - cx) / self.scale) - 1
+        x_max = int((w - cx) / self.scale) + 1
+        y_min = int((cy - h) / self.scale) - 1
+        y_max = int((cy - 0) / self.scale) + 1
 
-        # Rango visible
-        min_x = int((0 - self.center_x) / self.scale)
-        max_x = int((self.width - self.center_x) / self.scale)
-        min_y = int((self.center_y - self.height) / self.scale)
-        max_y = int((self.center_y - 0) / self.scale)
+        for x in range(x_min, x_max + 1):
+            px = self._to_px(x)
+            self.canvas.create_line(px, 0, px, h,
+                                    fill=self.COLOR_CUADRICULA, dash=(2, 4))
 
-        # Etiquetas X
-        for x in range(min_x, max_x + 1):
-            if x != 0:
-                px = self.convertir_x(x)
-                self.canvas.create_line(px, self.center_y - 4, px, self.center_y + 4, fill="#495057")
-                self.canvas.create_text(px, self.center_y + 15, text=str(x), fill="#6c757d", font=("Segoe UI", 8))
+        for y in range(y_min, y_max + 1):
+            py = self._to_py(y)
+            self.canvas.create_line(0, py, w, py,
+                                    fill=self.COLOR_CUADRICULA, dash=(2, 4))
 
-        # Etiquetas Y
-        for y in range(min_y, max_y + 1):
-            if y != 0:
-                py = self.convertir_y(y)
-                self.canvas.create_line(self.center_x - 4, py, self.center_x + 4, py, fill="#495057")
-                self.canvas.create_text(self.center_x - 15, py, text=str(y), fill="#6c757d", font=("Segoe UI", 8))
+    def _dibujar_ejes(self, w, h):
+        """Dibuja ejes X e Y con marcas numéricas."""
+        cx, cy = self._cx(), self._cy()
 
-    # =========================================
-    # RENDERIZADO DE CÓNICAS (SIMPLIFICADO)
-    # =========================================
-    def renderizar_conica(self):
-        """Dibuja la cónica actual usando primitivas matemáticas eficientes de Tkinter."""
-        tipo = self.data.get('tipo', '')
-        centro = self.data.get('centro')
-        params = self.data.get('parametros', {})
-        
-        if not centro: return
+        # Ejes principales
+        self.canvas.create_line(0, cy, w, cy, fill=self.COLOR_EJE, width=2)
+        self.canvas.create_line(cx, 0, cx, h, fill=self.COLOR_EJE, width=2)
+
+        # Marcas y números
+        x_min = int((0 - cx) / self.scale)
+        x_max = int((w - cx) / self.scale)
+        y_min = int((cy - h) / self.scale)
+        y_max = int((cy - 0) / self.scale)
+
+        for x in range(x_min, x_max + 1):
+            if x == 0:
+                continue
+            px = self._to_px(x)
+            self.canvas.create_line(px, cy - 4, px, cy + 4,
+                                    fill=self.COLOR_EJE)
+            self.canvas.create_text(px, cy + 14, text=str(x),
+                                    fill=self.COLOR_NUMERO, font=("Arial", 8))
+
+        for y in range(y_min, y_max + 1):
+            if y == 0:
+                continue
+            py = self._to_py(y)
+            self.canvas.create_line(cx - 4, py, cx + 4, py,
+                                    fill=self.COLOR_EJE)
+            self.canvas.create_text(cx - 14, py, text=str(y),
+                                    fill=self.COLOR_NUMERO, font=("Arial", 8))
+
+    # ════════════════════════════════════════════════════════════════════
+    # RENDERIZADO DE CÓNICAS
+    # ════════════════════════════════════════════════════════════════════
+
+    def _renderizar_conica(self):
+        """Dibuja la cónica según su tipo, usando las primitivas de Tkinter."""
+        tipo = self.data.get("tipo", "")
+        centro = self.data.get("centro")
+        params = self.data.get("parametros", {})
+
+        if not centro:
+            return
         h, k = centro
-        
-        # Color primario
-        color = "#007bff" # Azul bonito
-        
-        if tipo == 'Circunferencia':
-            r = params.get('r', 0)
-            # Dibujo perfecto usando la caja delimitadora (Bounding Box)
-            x1, y1 = self.convertir_x(h - r), self.convertir_y(k + r)
-            x2, y2 = self.convertir_x(h + r), self.convertir_y(k - r)
-            self.canvas.create_oval(x1, y1, x2, y2, outline=color, width=2)
-            self.marcar_punto(h, k, "Centro")
 
-        elif tipo == 'Elipse':
-            a = params.get('a2', 0)**0.5
-            b = params.get('b2', 0)**0.5
-            x1, y1 = self.convertir_x(h - a), self.convertir_y(k + b)
-            x2, y2 = self.convertir_x(h + a), self.convertir_y(k - b)
-            self.canvas.create_oval(x1, y1, x2, y2, outline=color, width=2)
-            self.marcar_punto(h, k, "Centro")
+        if tipo == "Circunferencia":
+            r = params.get("r", 0)
+            # create_oval recibe la caja delimitadora (bounding box)
+            self.canvas.create_oval(
+                self._to_px(h - r), self._to_py(k + r),
+                self._to_px(h + r), self._to_py(k - r),
+                outline=self.COLOR_CONICA, width=2)
+            self._marcar_punto(h, k, "Centro")
 
-        elif tipo == 'Hipérbola':
-            a = params.get('a2', 0)**0.5
-            b = params.get('b2', 0)**0.5
-            # Puntos sueltos pero unidos con línea para formar ramas suaves
-            puntos_der, puntos_izq = [], []
-            x_math = a
-            while x_math <= 20: # Límite matemático arbitrario
-                valor = ((x_math**2) / (a**2)) - 1
-                if valor >= 0:
-                    y_math = (valor * (b**2))**0.5
-                    puntos_der.insert(0, (h + x_math, k + y_math)) # Rama derecha arriba
-                    puntos_der.append((h + x_math, k - y_math))    # Rama derecha abajo
-                    puntos_izq.insert(0, (h - x_math, k + y_math)) # Rama izquierda arriba
-                    puntos_izq.append((h - x_math, k - y_math))    # Rama izquierda abajo
-                x_math += 0.1
-            
-            # Dibujar líneas continuas
-            self.dibujar_linea_continua(puntos_der, color)
-            self.dibujar_linea_continua(puntos_izq, color)
-            self.marcar_punto(h, k, "Centro")
+        elif tipo == "Elipse":
+            a = params.get("a2", 0) ** 0.5
+            b = params.get("b2", 0) ** 0.5
+            self.canvas.create_oval(
+                self._to_px(h - a), self._to_py(k + b),
+                self._to_px(h + a), self._to_py(k - b),
+                outline=self.COLOR_CONICA, width=2)
+            self._marcar_punto(h, k, "Centro")
 
-        elif tipo == 'Parábola':
-            p = params.get('p', 0)
-            orientacion = params.get('orientacion')
+        elif tipo == "Hipérbola":
+            a = params.get("a2", 0) ** 0.5
+            b = params.get("b2", 0) ** 0.5
+            rama_der = []
+            rama_izq = []
+            t = a
+            while t <= 25:
+                val = ((t ** 2) / (a ** 2)) - 1
+                if val >= 0:
+                    y_val = (val * (b ** 2)) ** 0.5
+                    # Cada rama se construye como arco continuo (arriba → abajo)
+                    rama_der.insert(0, (h + t, k + y_val))
+                    rama_der.append((h + t, k - y_val))
+                    rama_izq.insert(0, (h - t, k + y_val))
+                    rama_izq.append((h - t, k - y_val))
+                t += 0.1
+            self._trazar_linea(rama_der, self.COLOR_CONICA)
+            self._trazar_linea(rama_izq, self.COLOR_CONICA)
+            self._marcar_punto(h, k, "Centro")
+
+        elif tipo == "Parábola":
+            p = params.get("p", 0)
+            orientacion = params.get("orientacion", "vertical")
             puntos = []
-            
-            if orientacion == 'horizontal':
-                y_math = -20
-                while y_math <= 20:
-                    x_math = (y_math**2) / (4*p) if p != 0 else 0
-                    puntos.append((h + x_math, k + y_math))
-                    y_math += 0.2
-            else: # vertical
-                x_math = -20
-                while x_math <= 20:
-                    y_math = (x_math**2) / (4*p) if p != 0 else 0
-                    puntos.append((h + x_math, k + y_math))
-                    x_math += 0.2
-                    
-            self.dibujar_linea_continua(puntos, color)
-            self.marcar_punto(h, k, "Vértice")
 
-    # =========================================
-    # RENDERIZADO DE FUNCIONES
-    # =========================================
-    def renderizar_funcion(self):
-        """Renderiza una función matemática continua o con cortes."""
-        f_eval = self.data['limites']['f_eval']
-        punto_critico = self.data['funcion']['puntoAnalisis']
-        tipo_disc = self.data['funcion']['tipo']
-        
-        # Color rojo para la función
-        color = "#dc3545" 
-        
-        x_math = int((0 - self.center_x) / self.scale) - 5 # Rango dinámico
-        x_max = int((self.width - self.center_x) / self.scale) + 5
-        
-        tramo_actual = []
-        step = 0.05
-        
-        while x_math <= x_max:
-            y_math = f_eval(x_math)
-            
-            # Cortar la línea si hay error, discontinuidad o crecimiento excesivo
-            if y_math == "Indefinido" or abs(y_math) > 100:
-                if len(tramo_actual) > 1:
-                    self.dibujar_linea_continua(tramo_actual, color)
-                tramo_actual = []
+            if orientacion == "horizontal":
+                t = -25
+                while t <= 25:
+                    x_val = (t ** 2) / (4 * p) if p != 0 else 0
+                    puntos.append((h + x_val, k + t))
+                    t += 0.2
             else:
-                tramo_actual.append((x_math, y_math))
-                
-            x_math += step
-            
-        # Dibujar último tramo
-        if len(tramo_actual) > 1:
-            self.dibujar_linea_continua(tramo_actual, color)
-            
-        # Dibujar asíntota si existe
-        if tipo_disc == 'infinita':
-            px = self.convertir_x(punto_critico)
-            self.canvas.create_line(px, 0, px, self.height, fill="#adb5bd", dash=(5, 5), width=2)
-            self.canvas.create_text(px + 10, 20, text="Asíntota", fill="#adb5bd", anchor=tk.W)
+                t = -25
+                while t <= 25:
+                    y_val = (t ** 2) / (4 * p) if p != 0 else 0
+                    puntos.append((h + t, k + y_val))
+                    t += 0.2
 
-    # =========================================
-    # HELPERS
-    # =========================================
-    def dibujar_linea_continua(self, puntos_math, color):
-        """Dibuja una línea continua a partir de una lista de coordenadas (x, y)."""
-        coords_pixels = []
-        for x, y in puntos_math:
-            coords_pixels.extend([self.convertir_x(x), self.convertir_y(y)])
-        if len(coords_pixels) >= 4:
-            self.canvas.create_line(coords_pixels, fill=color, width=2, smooth=False)
+            self._trazar_linea(puntos, self.COLOR_CONICA)
+            self._marcar_punto(h, k, "Vértice")
 
-    def marcar_punto(self, x, y, etiqueta):
-        """Dibuja un punto destacado y su etiqueta en el plano."""
-        px = self.convertir_x(x)
-        py = self.convertir_y(y)
-        self.canvas.create_oval(px - 4, py - 4, px + 4, py + 4, fill="#212529")
-        self.canvas.create_text(px + 10, py - 10, text=f"{etiqueta}\n({round(x,1)}, {round(y,1)})", 
-                                font=("Segoe UI", 9, "bold"), fill="#212529", anchor=tk.W)
+    # ════════════════════════════════════════════════════════════════════
+    # RENDERIZADO DE FUNCIONES POR TRAMOS
+    # ════════════════════════════════════════════════════════════════════
+
+    def _renderizar_funcion(self, ancho_canvas):
+        """Dibuja la función evaluando punto a punto con cortes en discontinuidades."""
+        f_eval = self.data["limites"]["f_eval"]
+        punto = self.data["funcion"]["puntoAnalisis"]
+        tipo_disc = self.data["funcion"]["tipo"]
+
+        # Rango visible dinámico
+        cx = self._cx()
+        x_ini = int((0 - cx) / self.scale) - 5
+        x_fin = int((ancho_canvas - cx) / self.scale) + 5
+
+        tramo = []
+        x = x_ini
+        paso = 0.05
+        while x <= x_fin:
+            y = f_eval(x)
+
+            # Si la función es indefinida o explota, cortamos el trazo
+            if y == "Indefinido" or y is None or abs(y) > 100:
+                if len(tramo) > 1:
+                    self._trazar_linea(tramo, self.COLOR_FUNCION)
+                tramo = []
+            else:
+                tramo.append((x, y))
+
+            x += paso
+
+        # Dibujar el último tramo pendiente
+        if len(tramo) > 1:
+            self._trazar_linea(tramo, self.COLOR_FUNCION)
+
+        # Asíntota vertical (solo para discontinuidad infinita)
+        if tipo_disc == "infinita":
+            px = self._to_px(punto)
+            h = self.canvas.winfo_height()
+            self.canvas.create_line(px, 0, px, h,
+                                    fill=self.COLOR_ASINTOTA, dash=(6, 4), width=1)
+            self.canvas.create_text(px + 8, 16, text=f"x = {punto}",
+                                    fill=self.COLOR_ASINTOTA, anchor=tk.W,
+                                    font=("Arial", 9, "italic"))
+
+    # ════════════════════════════════════════════════════════════════════
+    # UTILIDADES DE DIBUJO
+    # ════════════════════════════════════════════════════════════════════
+
+    def _trazar_linea(self, puntos, color):
+        """Convierte una lista de (x, y) matemáticos a píxeles y traza una línea."""
+        coords = []
+        for x, y in puntos:
+            coords.append(self._to_px(x))
+            coords.append(self._to_py(y))
+        if len(coords) >= 4:
+            self.canvas.create_line(coords, fill=color, width=2)
+
+    def _marcar_punto(self, x, y, etiqueta):
+        """Dibuja un punto negro con etiqueta de texto."""
+        px, py = self._to_px(x), self._to_py(y)
+        r = 4
+        self.canvas.create_oval(px - r, py - r, px + r, py + r,
+                                fill=self.COLOR_PUNTO)
+        self.canvas.create_text(px + 10, py - 12,
+                                text=f"{etiqueta} ({round(x, 1)}, {round(y, 1)})",
+                                fill=self.COLOR_PUNTO, anchor=tk.W,
+                                font=("Arial", 9, "bold"))

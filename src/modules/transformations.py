@@ -147,44 +147,135 @@ def transformarACanonica(coeficientes):
         'pasos': pasos
     }
 
-def transformarAGeneral(formaCanonica, centro, parametros):
+def transformarAGeneral(tipoConica, formaCanonica, centro, parametros):
     """
-    Transforma la ecuación canónica de vuelta a forma general.
+    Transforma la ecuación canónica de vuelta a la forma general.
+    Muestra paso a paso la expansión algebraica (requerido por el PDF).
     
     Parámetros:
-        formaCanonica (str): Ecuación en forma canónica
+        tipoConica (str): Tipo de cónica
+        formaCanonica (str): Ecuación en forma canónica (para referencia)
         centro (tuple): (h, k)
         parametros (dict): Parámetros según el tipo de cónica
     
     Retorna:
-        dict: {
-            'ecuacionGeneral': str,
-            'coeficientes': {'A': float, 'B': float, 'C': float, 'D': float, 'E': float},
-            'pasos': list[str]
-        }
+        dict: {'ecuacionGeneral': str, 'coeficientes': dict, 'pasos': list[str]}
     """
     pasos = []
-    
     pasos.append("=== TRANSFORMACIÓN CANÓNICA → GENERAL ===")
     pasos.append(f"Forma canónica: {formaCanonica}")
-    pasos.append(f"Centro: {centro}")
+    pasos.append(f"Centro/Vértice: {centro}")
+    pasos.append("")
     
-    # TODO: Implementar expansión paso a paso
-    # 1. Expandir binomios
-    # 2. Distribuir términos
-    # 3. Reagrupar en forma general
+    if centro is None:
+        pasos.append("No se puede realizar la transformación inversa.")
+        return {'ecuacionGeneral': "N/A", 'coeficientes': {}, 'pasos': pasos}
+    
+    h, k = centro
+    
+    if tipoConica in ("Circunferencia", "Elipse", "Hipérbola"):
+        # Obtener denominadores
+        a2 = parametros.get('a2', 1)
+        b2 = parametros.get('b2', 1)
+        
+        if tipoConica == "Circunferencia":
+            r = parametros.get('r', 0)
+            r2 = r * r
+            
+            pasos.append("PASO 1: Partimos de la forma canónica")
+            pasos.append(f"(x - {h:.2f})² + (y - {k:.2f})² = {r2:.2f}")
+            pasos.append("")
+            
+            pasos.append("PASO 2: Expandir binomios")
+            pasos.append(f"(x² - {2*h:.2f}x + {h*h:.2f}) + (y² - {2*k:.2f}y + {k*k:.2f}) = {r2:.2f}")
+            pasos.append("")
+            
+            pasos.append("PASO 3: Reagrupar")
+            E = h*h + k*k - r2
+            pasos.append(f"x² + y² - {2*h:.2f}x - {2*k:.2f}y + {E:.2f} = 0")
+            
+            A, B = 1, 1
+            C, D = -2*h, -2*k
+        else:
+            # Elipse o Hipérbola
+            signo = "+" if tipoConica == "Elipse" else "-"
+            
+            pasos.append("PASO 1: Partimos de la forma canónica")
+            pasos.append(f"(x - {h:.2f})²/{a2:.2f} {signo} (y - {k:.2f})²/{b2:.2f} = 1")
+            pasos.append("")
+            
+            pasos.append("PASO 2: Multiplicar todo por los denominadores")
+            if tipoConica == "Elipse":
+                coefA = 1/a2
+                coefB = 1/b2
+            else:
+                coefA = 1/a2
+                coefB = -1/b2
+            
+            pasos.append(f"{coefA:.4f}(x - {h:.2f})² + {coefB:.4f}(y - {k:.2f})² = 1")
+            pasos.append("")
+            
+            pasos.append("PASO 3: Expandir binomios")
+            pasos.append(f"{coefA:.4f}(x² - {2*h:.2f}x + {h*h:.2f}) + {coefB:.4f}(y² - {2*k:.2f}y + {k*k:.2f}) = 1")
+            pasos.append("")
+            
+            A = coefA
+            B = coefB
+            C = -2*h*coefA
+            D = -2*k*coefB
+            E = coefA*(h*h) + coefB*(k*k) - 1
+            
+            pasos.append("PASO 4: Reagrupar en forma general Ax² + By² + Cx + Dy + E = 0")
+            pasos.append(f"{A:.4f}x² + {B:.4f}y² + ({C:.4f})x + ({D:.4f})y + ({E:.4f}) = 0")
+    
+    elif tipoConica == "Parábola":
+        p = parametros.get('p', 0)
+        orientacion = parametros.get('orientacion', 'vertical')
+        
+        if orientacion == 'vertical':
+            pasos.append("PASO 1: Partimos de la forma canónica")
+            pasos.append(f"(x - {h:.2f})² = {4*p:.2f}(y - {k:.2f})")
+            pasos.append("")
+            
+            pasos.append("PASO 2: Expandir binomio izquierdo")
+            pasos.append(f"x² - {2*h:.2f}x + {h*h:.2f} = {4*p:.2f}y - {4*p*k:.2f}")
+            pasos.append("")
+            
+            A = 1
+            B = 0
+            C = -2*h
+            D = -4*p
+            E = h*h + 4*p*k
+            
+            pasos.append("PASO 3: Reagrupar")
+            pasos.append(f"{A}x² + ({C:.2f})x + ({D:.2f})y + ({E:.2f}) = 0")
+        else:
+            pasos.append("PASO 1: Partimos de la forma canónica")
+            pasos.append(f"(y - {k:.2f})² = {4*p:.2f}(x - {h:.2f})")
+            pasos.append("")
+            
+            pasos.append("PASO 2: Expandir binomio izquierdo")
+            pasos.append(f"y² - {2*k:.2f}y + {k*k:.2f} = {4*p:.2f}x - {4*p*h:.2f}")
+            pasos.append("")
+            
+            A = 0
+            B = 1
+            C = -4*p
+            D = -2*k
+            E = k*k + 4*p*h
+            
+            pasos.append("PASO 3: Reagrupar")
+            pasos.append(f"{B}y² + ({C:.2f})x + ({D:.2f})y + ({E:.2f}) = 0")
+    else:
+        A, B, C, D, E = 0, 0, 0, 0, 0
+        pasos.append("Tipo de cónica no soportado para transformación inversa.")
     
     pasos.append("")
-    pasos.append("PASO 1: Expandir binomios")
-    pasos.append("TODO: Mostrar expansión algebraica")
-    
-    # Placeholders
-    ecuacionGeneral = "Ax² + By² + Cx + Dy + E = 0"
-    coeficientes = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0}
+    pasos.append(f"→ Ecuación General recuperada: A={A:.4f}, B={B:.4f}, C={C:.4f}, D={D:.4f}, E={E:.4f}")
     
     return {
-        'ecuacionGeneral': ecuacionGeneral,
-        'coeficientes': coeficientes,
+        'ecuacionGeneral': f"{A:.4f}x² + {B:.4f}y² + ({C:.4f})x + ({D:.4f})y + ({E:.4f}) = 0",
+        'coeficientes': {'A': A, 'B': B, 'C': C, 'D': D, 'E': E},
         'pasos': pasos
     }
 
