@@ -222,7 +222,7 @@ class Plotter:
 
         while x <= 10:
 
-            y = funcion.evaluar(x)
+            y = funcion(x)
 
             # Saltar indefinidos
             if y == "Indefinido":

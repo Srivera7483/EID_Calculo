@@ -108,6 +108,7 @@ def transformarACanonica(coeficientes):
         formaCanonica = f"(y - {k:.2f})² = {-C/B:.2f}(x - {h:.2f})"
         centro = (round(h, 2), round(k, 2))  # En realidad es el vértice
         parametros['p'] = (-C/B) / 4
+        parametros['orientacion'] = 'horizontal'
         
     elif B == 0 and A != 0 and D != 0:
         # Caso 3: Parábola vertical (x al cuadrado)
@@ -127,6 +128,7 @@ def transformarACanonica(coeficientes):
         formaCanonica = f"(x - {h:.2f})² = {-D/A:.2f}(y - {k:.2f})"
         centro = (round(h, 2), round(k, 2))  # Vértice
         parametros['p'] = (-D/A) / 4
+        parametros['orientacion'] = 'vertical'
     else:
         # Caso de fallback, cuando los coeficientes no permiten formar una cónica regular
         tipoConica = "Caso no soportado/Línea recta"

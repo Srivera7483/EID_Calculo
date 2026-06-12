@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from modules.plotter import Plotter
 
-def iniciarInterfaz(ecuacionGeneral, formaCanonica, analisisFunciones):
+def iniciarInterfaz(ecuacionTexto, formaCanonicaData, analisisFunciones):
     
     #Inicia la interfaz grafica principal.
     
@@ -31,14 +31,14 @@ def iniciarInterfaz(ecuacionGeneral, formaCanonica, analisisFunciones):
     agregarSeccionValidacionRUT(frame_izq_conicas)
     ttk.Separator(frame_izq_conicas, orient='horizontal').pack(fill='x', pady=5)
     
-    agregarSeccionEcuacionGeneral(frame_izq_conicas, ecuacionGeneral)
+    agregarSeccionEcuacionGeneral(frame_izq_conicas, ecuacionTexto)
     ttk.Separator(frame_izq_conicas, orient='horizontal').pack(fill='x', pady=5)
     
-    agregarSeccionFormaCanonica(frame_izq_conicas, formaCanonica)
+    agregarSeccionFormaCanonica(frame_izq_conicas, formaCanonicaData['formaCanonica'])
     
     frame_der_conicas = ttk.Frame(pestana_conicas)
     frame_der_conicas.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-    agregarSeccionGrafica(frame_der_conicas, tipo_grafico="conica")
+    agregarSeccionGrafica(frame_der_conicas, tipo_grafico="conica", data=formaCanonicaData)
 
     # ==========================================
     # PESTAÑA 2: FUNCIONES
@@ -50,7 +50,7 @@ def iniciarInterfaz(ecuacionGeneral, formaCanonica, analisisFunciones):
     
     frame_der_func = ttk.Frame(pestana_funciones)
     frame_der_func.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-    agregarSeccionGrafica(frame_der_func, tipo_grafico="funcion")
+    agregarSeccionGrafica(frame_der_func, tipo_grafico="funcion", data=analisisFunciones)
 
     # Iniciar el loop de la ventana
     root.mainloop()
@@ -100,7 +100,7 @@ def agregarSeccionFormaCanonica(frame, formaCanonica):
         ttk.Label(row, text=f"{campo}:", width=22).pack(side=tk.LEFT)
         ttk.Entry(row).pack(side=tk.RIGHT, expand=True, fill=tk.X)
 
-def agregarSeccionGrafica(frame, tipo_grafico):
+def agregarSeccionGrafica(frame, tipo_grafico, data):
     
     #Agrega seccion con grafica de la conica o funcion usando la clase Plotter.
     
@@ -120,12 +120,37 @@ def agregarSeccionGrafica(frame, tipo_grafico):
     graficador = Plotter(canvas, width=width, height=height)
     graficador.dibujar_ejes()
     
-    # MOCKS visuales temporales para que pruebes el diseño
-    if tipo_grafico == "conica":
-        graficador.dibujar_circunferencia(0, 0, 4)  # Circunferencia de prueba
-    else:
-        # Aqui dibujarias la función con graficador.dibujar_funcion()
-        graficador.dibujar_punto(2, 3, "blue") # Punto simulado
+    # Dibujar gráfica real
+    if tipo_grafico == "conica" and data:
+        tipo = data.get('tipo', '')
+        centro = data.get('centro')
+        params = data.get('parametros', {})
+        
+        if centro:
+            h, k = centro
+            if tipo == 'Circunferencia':
+                graficador.dibujar_circunferencia(h, k, params.get('r', 0))
+            elif tipo == 'Elipse':
+                graficador.dibujar_elipse(h, k, params.get('a2', 0)**0.5, params.get('b2', 0)**0.5)
+            elif tipo == 'Hipérbola':
+                graficador.dibujar_hiperbola(h, k, params.get('a2', 0)**0.5, params.get('b2', 0)**0.5)
+            elif tipo == 'Parábola':
+                p = params.get('p', 0)
+                if params.get('orientacion') == 'horizontal':
+                    graficador.dibujar_parabola_horizontal(h, k, p)
+                else:
+                    graficador.dibujar_parabola_vertical(h, k, p)
+                    
+    elif tipo_grafico == "funcion" and data:
+        f_eval = data['limites']['f_eval']
+        punto = data['funcion']['puntoAnalisis']
+        
+        # Dibujar función
+        graficador.dibujar_funcion(f_eval)
+        
+        # Dibujar asíntota si es discontinuidad infinita
+        if data['funcion']['tipo'] == 'infinita':
+            graficador.dibujar_asintota_vertical(punto)
         
     graficador.actualizar()
 
@@ -134,7 +159,7 @@ def agregarSeccionFunciones(frame, analisisFunciones):
     Agrega sección con análisis de funciones por tramos.
     """
     ttk.Label(frame, text="Análisis de Funciones", font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=(0, 5))
-    ttk.Label(frame, text=f"Caso generado:\n{analisisFunciones}", justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 10))
+    ttk.Label(frame, text=f"Caso generado:\n{analisisFunciones['funcion']['funcionFormula']}", justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 10))
     
     ttk.Label(frame, text="Campos de Defensa Oral:", font=("Arial", 10, "italic")).pack(anchor=tk.W, pady=5)
     

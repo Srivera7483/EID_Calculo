@@ -6,7 +6,7 @@ from modules.conic import construirEcuacionGeneral, clasificarConica, mostrarEcu
 from modules.transformations import transformarACanonica
 # from modules.plotter import graficarConica
 from modules.functions import analizarFuncionPorTramos
-# from ui.interface import iniciarInterfaz
+from ui.interface import iniciarInterfaz
 
 def main():
     """
@@ -72,8 +72,8 @@ def main():
     for paso in analisisFunciones['pasos']:
         print(paso)
     
-    # Paso 8: Iniciar interfaz gráfica (pendiente)
-    # iniciarInterfaz(ecuacionGeneralData, None, analisisFunciones)
+    # Paso 8: Iniciar interfaz gráfica
+    iniciarInterfaz(ecuacionTexto, formaCanonicaData, analisisFunciones)
 
 if __name__ == "__main__":
     main()
