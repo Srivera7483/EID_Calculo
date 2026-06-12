@@ -235,7 +235,7 @@ class Graficador:
 
     def dibujarFuncion(self):
         """Dibuja la función por tramos, cortando en las discontinuidades."""
-        funcionEvaluar = self.datos["limites"]["f_eval"]
+        funcionEvaluar = self.datos["limites"]["funcionEvaluar"]
         puntoAnalisis = self.datos["funcion"]["puntoAnalisis"]
         tipoDiscontinuidad = self.datos["funcion"]["tipo"]
 

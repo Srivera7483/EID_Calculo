@@ -137,7 +137,7 @@ def calcularLimitesLaterales(funcion, puntoAnalisis, tipo, digitos):
         'existeLimite': existeLimite,
         'valores': valores,
         'pasos': pasos,
-        'f_eval': evaluar
+        'funcionEvaluar': evaluar
     }
 
 def analizarContinuidad(limites, puntoAnalisis, tipo):
@@ -150,7 +150,7 @@ def analizarContinuidad(limites, puntoAnalisis, tipo):
     pasos.append(f"Condición: lim(x→{puntoAnalisis}⁻) = lim(x→{puntoAnalisis}⁺) = f({puntoAnalisis})?")
     pasos.append("")
     
-    fEval = limites['f_eval']
+    fEval = limites['funcionEvaluar']
     valorEnPunto = fEval(puntoAnalisis)
     
     strValor = f"{valorEnPunto:.2f}" if valorEnPunto is not None else "Indefinido"
