@@ -54,12 +54,10 @@ class Graficador:
 
     def centroX(self):
         """Retorna la posición X del origen (0,0) en pixeles."""
-        self.lienzo.update_idletasks()
         return self.lienzo.winfo_width() // 2 + self.desplazamientoX
 
     def centroY(self):
         """Retorna la posición Y del origen (0,0) en pixeles."""
-        self.lienzo.update_idletasks()
         return self.lienzo.winfo_height() // 2 + self.desplazamientoY
 
     def aPixelX(self, xMatematico):
