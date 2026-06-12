@@ -156,43 +156,9 @@ def agregarSeccionGrafica(frame, tipo_grafico, data):
     width = canvas.winfo_width() if canvas.winfo_width() > 10 else 600
     height = canvas.winfo_height() if canvas.winfo_height() > 10 else 500
 
-    # Instanciar el Plotter manual
+    # Instanciar el Plotter interactivo y pasar los datos
     graficador = Plotter(canvas, width=width, height=height)
-    graficador.dibujar_ejes()
-    
-    # Dibujar gráfica real
-    if tipo_grafico == "conica" and data:
-        tipo = data.get('tipo', '')
-        centro = data.get('centro')
-        params = data.get('parametros', {})
-        
-        if centro:
-            h, k = centro
-            if tipo == 'Circunferencia':
-                graficador.dibujar_circunferencia(h, k, params.get('r', 0))
-            elif tipo == 'Elipse':
-                graficador.dibujar_elipse(h, k, params.get('a2', 0)**0.5, params.get('b2', 0)**0.5)
-            elif tipo == 'Hipérbola':
-                graficador.dibujar_hiperbola(h, k, params.get('a2', 0)**0.5, params.get('b2', 0)**0.5)
-            elif tipo == 'Parábola':
-                p = params.get('p', 0)
-                if params.get('orientacion') == 'horizontal':
-                    graficador.dibujar_parabola_horizontal(h, k, p)
-                else:
-                    graficador.dibujar_parabola_vertical(h, k, p)
-                    
-    elif tipo_grafico == "funcion" and data:
-        f_eval = data['limites']['f_eval']
-        punto = data['funcion']['puntoAnalisis']
-        
-        # Dibujar función
-        graficador.dibujar_funcion(f_eval)
-        
-        # Dibujar asíntota si es discontinuidad infinita
-        if data['funcion']['tipo'] == 'infinita':
-            graficador.dibujar_asintota_vertical(punto)
-        
-    graficador.actualizar()
+    graficador.set_data(tipo_grafico, data)
 
 def agregarSeccionFunciones(frame, analisisFunciones):
     """
