@@ -13,6 +13,34 @@ class Plotter:
         # Centro del plano
         self.center_x = width // 2
         self.center_y = height // 2
+        
+        # Variables para arrastre
+        self.drag_data = {"x": 0, "y": 0}
+        
+        # Vincular eventos del ratón para hacer pan/drag
+        self.canvas.bind("<ButtonPress-1>", self.on_press)
+        self.canvas.bind("<B1-Motion>", self.on_drag)
+
+    def on_press(self, event):
+        """Registra la posición inicial al hacer clic."""
+        self.drag_data["x"] = event.x
+        self.drag_data["y"] = event.y
+
+    def on_drag(self, event):
+        """Mueve todo el contenido del canvas según el desplazamiento."""
+        dx = event.x - self.drag_data["x"]
+        dy = event.y - self.drag_data["y"]
+        
+        # Mueve todos los elementos dibujados
+        self.canvas.move("all", dx, dy)
+        
+        # Actualiza el centro lógico para futuros trazados
+        self.center_x += dx
+        self.center_y += dy
+        
+        # Actualiza la última posición del ratón
+        self.drag_data["x"] = event.x
+        self.drag_data["y"] = event.y
 
     # =========================================
     # LIMPIAR CANVAS

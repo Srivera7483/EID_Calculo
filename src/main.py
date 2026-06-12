@@ -73,7 +73,7 @@ def main():
         print(paso)
     
     # Paso 8: Iniciar interfaz gráfica
-    iniciarInterfaz(ecuacionTexto, formaCanonicaData, analisisFunciones)
+    iniciarInterfaz(resultadoValidacion, ecuacionTexto, formaCanonicaData, analisisFunciones)
 
 if __name__ == "__main__":
     main()

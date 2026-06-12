@@ -74,7 +74,20 @@ def validarRutConPasos(rut):
     resultado = "VÁLIDO" if valido else "INVÁLIDO"
     pasos.append(f"Comparación: ¿DV dado ({dvDado}) == DV esperado ({dvEsperado})? {resultado}")
 
-    return {'valido': valido, 'pasos': pasos}
+    detalles = {
+        'cuerpo': cuerpo,
+        'dvDado': dvDado,
+        'dvEsperado': dvEsperado,
+        'multiplicadores': multiplicadores,
+        'suma': suma,
+        'resto': resto,
+        'productos': [
+            {'digito': int(cuerpo[7 - i]), 'multiplicador': multiplicadores[i], 'producto': int(cuerpo[7 - i]) * multiplicadores[i]}
+            for i in range(8)
+        ]
+    }
+
+    return {'valido': valido, 'pasos': pasos, 'detalles': detalles}
 
 def extraerDigitos(rut):
     """

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from modules.plotter import Plotter
 
-def iniciarInterfaz(ecuacionTexto, formaCanonicaData, analisisFunciones):
+def iniciarInterfaz(resultadoValidacion, ecuacionTexto, formaCanonicaData, analisisFunciones):
     
     #Inicia la interfaz grafica principal.
     
@@ -16,20 +16,24 @@ def iniciarInterfaz(ecuacionTexto, formaCanonicaData, analisisFunciones):
     notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
     
     # Crear los frames para cada pestaña
+    pestana_rut = ttk.Frame(notebook)
     pestana_conicas = ttk.Frame(notebook)
     pestana_funciones = ttk.Frame(notebook)
     
-    notebook.add(pestana_conicas, text="Secciones Conicas")
-    notebook.add(pestana_funciones, text="Funciones por Tramos")
+    notebook.add(pestana_rut, text="Cálculo de RUT")
+    notebook.add(pestana_conicas, text="Forma Cónica")
+    notebook.add(pestana_funciones, text="Límites")
+    
+    # ==========================================
+    # PESTAÑA 0: RUT
+    # ==========================================
+    agregarSeccionValidacionRUT(pestana_rut, resultadoValidacion)
     
     # ==========================================
     # PESTAÑA 1: CONICAS
     # ==========================================
     frame_izq_conicas = ttk.Frame(pestana_conicas, width=400)
     frame_izq_conicas.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
-    
-    agregarSeccionValidacionRUT(frame_izq_conicas)
-    ttk.Separator(frame_izq_conicas, orient='horizontal').pack(fill='x', pady=5)
     
     agregarSeccionEcuacionGeneral(frame_izq_conicas, ecuacionTexto)
     ttk.Separator(frame_izq_conicas, orient='horizontal').pack(fill='x', pady=5)
@@ -65,14 +69,50 @@ def crearVentanaPrincipal():
     root.minsize(900, 600)
     return root
 
-def agregarSeccionValidacionRUT(frame):
+def agregarSeccionValidacionRUT(frame, resultadoValidacion):
+    """Agrega seccion de validacion del RUT mostrando los pasos del cálculo."""
+    ttk.Label(frame, text="Análisis y Validación de RUT (Módulo 11)", font=("Arial", 16, "bold")).pack(anchor=tk.N, pady=(20, 10))
     
-    #Agrega seccion de validacion del RUT (solo lectura).
+    estado = "VÁLIDO" if resultadoValidacion.get('valido', False) else "INVÁLIDO"
+    color = "green" if estado == "VÁLIDO" else "red"
+    ttk.Label(frame, text=f"Resultado: {estado}", font=("Arial", 14, "bold"), foreground=color).pack(anchor=tk.N, pady=(0, 20))
     
-    ttk.Label(frame, text="Validacion de RUT", font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=(0, 5))
-    # NOTA: Aquí puedes recibir el RUT validado como parámetro más adelante
-    ttk.Label(frame, text="RUT Ingresado: 12345678-9 (MOCK)").pack(anchor=tk.W)
-    ttk.Label(frame, text="Estado: Válido (Módulo 11)").pack(anchor=tk.W)
+    if 'detalles' not in resultadoValidacion:
+        ttk.Label(frame, text="No hay detalles de validación disponibles.").pack()
+        return
+        
+    detalles = resultadoValidacion['detalles']
+    
+    # Tabla Treeview para los multiplicadores
+    columnas = ("Digito", "Multiplicador", "Producto")
+    tabla = ttk.Treeview(frame, columns=columnas, show="headings", height=8)
+    tabla.heading("Digito", text="Dígito del RUT")
+    tabla.heading("Multiplicador", text="Multiplicador")
+    tabla.heading("Producto", text="Producto")
+    
+    tabla.column("Digito", anchor=tk.CENTER, width=150)
+    tabla.column("Multiplicador", anchor=tk.CENTER, width=150)
+    tabla.column("Producto", anchor=tk.CENTER, width=150)
+    
+    tabla.pack(pady=10)
+    
+    for item in detalles['productos']:
+        tabla.insert("", tk.END, values=(item['digito'], item['multiplicador'], item['producto']))
+        
+    # Desglose de fórmulas
+    frame_formulas = ttk.Frame(frame)
+    frame_formulas.pack(pady=20)
+    
+    fuente_formula = ("Arial", 12)
+    
+    ttk.Label(frame_formulas, text=f"1. Suma total de los productos = {detalles['suma']}", font=fuente_formula).pack(anchor=tk.W, pady=5)
+    ttk.Label(frame_formulas, text=f"2. Resto de dividir la suma por 11 (Módulo 11) = {detalles['resto']}", font=fuente_formula).pack(anchor=tk.W, pady=5)
+    ttk.Label(frame_formulas, text=f"3. Fórmula del Dígito Verificador (11 - Resto) = 11 - {detalles['resto']} = {detalles['dvEsperado']}", font=fuente_formula).pack(anchor=tk.W, pady=5)
+    
+    ttk.Separator(frame_formulas, orient='horizontal').pack(fill='x', pady=10)
+    
+    ttk.Label(frame_formulas, text=f"DV Calculado = {detalles['dvEsperado']}", font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=2)
+    ttk.Label(frame_formulas, text=f"DV Ingresado = {detalles['dvDado']}", font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=2)
 
 def agregarSeccionEcuacionGeneral(frame, ecuacionGeneral):
     
