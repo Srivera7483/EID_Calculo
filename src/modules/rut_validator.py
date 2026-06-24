@@ -1,134 +1,107 @@
-# rutValidator.py - Validación del RUT chileno usando algoritmo módulo 11
-# ============================================================================
-# ALGORITMO MÓDULO 11 (Estándar SII Chile):
-# 1. Multiplicar cada dígito del RUT (de derecha a izquierda) por [2,3,4,5,6,7,2,3]
-# 2. Sumar todos los productos
-# 3. Calcular resto de la suma dividido por 11
-# 4. DV = 11 - resto (con excepciones: si resto=0 → DV=0, si resto=1 → DV=K)
-# Esto detecta errores: si cambias un dígito, el DV no coincidirá.
-
 def validarRutConPasos(rut):
     """
-    Valida RUT chileno usando algoritmo módulo 11 y retorna pasos detallados.
-    
-    Parámetros:
-        rut (str): RUT en formato "12345678-9" o "12345678K"
-
-    Retorna:
-        dict: {'valido': bool, 'pasos': list[str]} con pasos detallados del proceso
+    Valida un RUT chileno usando el algoritmo módulo 11.
     """
     pasos = []
     pasos.append(f"RUT ingresado: {rut}")
 
-    # Limpiar RUT
+    # Eliminar puntos, guiones y espacios; convertir a mayúsculas
     rutLimpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
-    pasos.append(f"RUT limpio: {rutLimpio}")
+    pasos.append(f"RUT limpio (sin formato): {rutLimpio}")
 
-    # Verificar formato básico del RUT limpio
-    # Debe tener exactamente 9 caracteres: 8 dígitos + 1 DV
-    longitudCorrecta = len(rutLimpio) == 9
-    cuerpoEsDigitos = rutLimpio[:-1].isdigit()  # Primeros 8 son números
-    dvEsValido = rutLimpio[-1].isdigit() or rutLimpio[-1] == 'K'  # Último es 0-9 o K
+    # Verificar formato: 8 dígitos + 1 dígito verificador (0-9 o K)
+    formatoValido = (
+        len(rutLimpio) == 9
+        and rutLimpio[:-1].isdigit()
+        and (rutLimpio[-1].isdigit() or rutLimpio[-1] == 'K')
+    )
 
-    if not (longitudCorrecta and cuerpoEsDigitos and dvEsValido):
+    if not formatoValido:
         pasos.append("Formato inválido: debe tener 8 dígitos + DV (0-9 o K)")
         return {'valido': False, 'pasos': pasos}
 
-    cuerpo = rutLimpio[:-1]
-    dvDado = rutLimpio[-1]
-    pasos.append(f"Cuerpo: {cuerpo}, DV dado: {dvDado}")
+    cuerpo = rutLimpio[:-1]   # Los 8 dígitos del RUT
+    dvIngresado = rutLimpio[-1]
+    pasos.append(f"Cuerpo: {cuerpo}  |  DV ingresado: {dvIngresado}")
 
-    # Multiplicadores
+    # Multiplicadores del algoritmo módulo 11 (se aplican de derecha a izquierda)
     multiplicadores = [2, 3, 4, 5, 6, 7, 2, 3]
     pasos.append(f"Multiplicadores (de derecha a izquierda): {multiplicadores}")
 
-    # Cálculo de la suma de productos
-    # Multiplicar cada dígito del cuerpo por su multiplicador correspondiente (de derecha a izquierda)
-    suma = 0
+    # Calcular la suma de cada dígito multiplicado por su factor
+    sumaTotal = 0
     detalleProductos = []
-    for i in range(8):
-        digito = int(cuerpo[7 - i])  # Dígito desde la derecha (índice 7 a 0)
-        multiplicador = multiplicadores[i]
-        producto = digito * multiplicador
-        suma += producto
-        detalleProductos.append(f"{digito} * {multiplicador} = {producto}")
-    
-    pasos.append(f"Productos: {' + '.join(detalleProductos)} = {suma}")
+    for posicion in range(8):
+        digitoActual = int(cuerpo[7 - posicion])   # Recorre de derecha a izquierda
+        factor = multiplicadores[posicion]
+        producto = digitoActual * factor
+        sumaTotal += producto
+        detalleProductos.append(f"{digitoActual} × {factor} = {producto}")
 
-    # Calcular resto de la suma dividido por 11
-    resto = suma % 11
-    pasos.append(f"Suma % 11 = {resto}")
+    pasos.append(f"Productos: {' + '.join(detalleProductos)} = {sumaTotal}")
 
-    # Calcular DV esperado según el resto
+    # Calcular el resto y determinar el DV esperado
+    resto = sumaTotal % 11
+    pasos.append(f"Suma mod 11 = {sumaTotal} mod 11 = {resto}")
+
     if resto == 0:
-        dvEsperado = '0'  # Si resto 0, DV = 0
+        dvEsperado = '0'
     elif resto == 1:
-        dvEsperado = 'K'  # Si resto 1, DV = K
+        dvEsperado = 'K'
     else:
-        dvEsperado = str(11 - resto)  # DV = 11 - resto
-    
+        dvEsperado = str(11 - resto)
+
     pasos.append(f"DV esperado: {dvEsperado}")
 
-    # Verificar si coincide
-    valido = dvDado == dvEsperado
-    resultado = "VÁLIDO" if valido else "INVÁLIDO"
-    pasos.append(f"Comparación: ¿DV dado ({dvDado}) == DV esperado ({dvEsperado})? {resultado}")
+    # Comparar el DV ingresado con el esperado
+    esValido = dvIngresado == dvEsperado
+    resultado = "VÁLIDO" if esValido else "INVÁLIDO"
+    pasos.append(f"Comparación: DV ingresado ({dvIngresado}) == DV esperado ({dvEsperado})? → {resultado}")
 
     detalles = {
         'cuerpo': cuerpo,
-        'dvDado': dvDado,
+        'dvDado': dvIngresado,
         'dvEsperado': dvEsperado,
         'multiplicadores': multiplicadores,
-        'suma': suma,
+        'suma': sumaTotal,
         'resto': resto,
         'productos': [
-            {'digito': int(cuerpo[7 - i]), 'multiplicador': multiplicadores[i], 'producto': int(cuerpo[7 - i]) * multiplicadores[i]}
+            {
+                'digito': int(cuerpo[7 - i]),
+                'multiplicador': multiplicadores[i],
+                'producto': int(cuerpo[7 - i]) * multiplicadores[i]
+            }
             for i in range(8)
         ]
     }
 
-    return {'valido': valido, 'pasos': pasos, 'detalles': detalles}
+    return {'valido': esValido, 'pasos': pasos, 'detalles': detalles}
+
 
 def extraerDigitos(rut):
-    """
-    Extrae los 8 dígitos del cuerpo del RUT (sin el DV).
-
-    Parámetros:
-        rut (str): RUT válido en cualquier formato (ej: "12345678-9", "12.345.678-9")
-
-    Retorna:
-        list[int]: Lista de 8 dígitos [d1, d2, d3, d4, d5, d6, d7, d8]
-
-    Ejemplo: 
-        entrada: "12345678-9"
-        salida: [1, 2, 3, 4, 5, 6, 7, 8]
-    """
-    # Limpiar RUT: quitar puntos, guiones y espacios, convertir a mayúsculas
+    
     rutLimpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
-    cuerpo = rutLimpio[:-1]  # Extraer los 8 primeros caracteres (ignorar DV)
-    return [int(d) for d in cuerpo]
+    cuerpo = rutLimpio[:-1]   # Ignorar el último carácter (DV)
+    return [int(digito) for digito in cuerpo]
+
 
 def calcularV(dv):
     """
-    Calcula la variable auxiliar 'v' según el dígito verificador del RUT.
-    
-    Esta variable se usa para calcular los coeficientes de la ecuación cónica
-    (A, B según contexto.md)
+    Calcula la variable auxiliar 'v' a partir del dígito verificador.
+    Esta variable se usa para calcular los coeficientes de la ecuación cónica.
 
     Parámetros:
         dv (str): Dígito verificador ('0'-'9' o 'K')
 
     Retorna:
-        int: v = 10 si DV='K', 11 si DV='0', valor numérico si DV='1'-'9'
+        int: 10 si DV='K', 11 si DV='0', el valor numérico en cualquier otro caso
 
-    Ejemplo:
-        'K' → 10
-        '0' → 11
-        '5' → 5
+    Ejemplos:
+        'K' → 10,  '0' → 11,  '5' → 5
     """
     if dv == 'K':
-        return 10  # Letra K mapea a 10
+        return 10
     elif dv == '0':
-        return 11  # Dígito 0 mapea a 11
+        return 11
     else:
-        return int(dv)  # Otros dígitos se usan directamente
+        return int(dv)

@@ -1,51 +1,51 @@
 # plotter.py - Graficador interactivo con Tkinter
-# Permite graficar cónicas y funciones por tramos en un plano cartesiano
-# Soporta: arrastre con clic izquierdo y zoom con la rueda del ratón
+# Dibuja cónicas y funciones por tramos en un plano cartesiano.
+# Soporta: arrastre con clic izquierdo y zoom con la rueda del ratón.
 
 import tkinter as tk
 
 
 class Graficador:
-    """Dibuja cónicas y funciones en un plano cartesiano interactivo."""
+    """Dibuja cónicas y funciones por tramos en un plano cartesiano interactivo."""
 
     def __init__(self, lienzo):
-        self.lienzo = lienzo
-        self.escala = 40              # Pixeles por unidad matemática
-        self.desplazamientoX = 0      # Desplazamiento horizontal del origen
-        self.desplazamientoY = 0      # Desplazamiento vertical del origen
-        self.tipoGrafico = None       # "conica" o "funcion"
-        self.datos = None             # Datos matemáticos a graficar
-        self.arrastre_x = 0
-        self.arrastre_y = 0
+        self.lienzo         = lienzo
+        self.escala         = 40   # Pixeles por unidad matemática
+        self.desplazamientoX = 0   # Desplazamiento horizontal del origen (arrastre)
+        self.desplazamientoY = 0   # Desplazamiento vertical del origen (arrastre)
+        self.tipoGrafico    = None  # "conica" o "funcion"
+        self.datos          = None  # Datos matemáticos a graficar
+        self.arrastreInicialX = 0
+        self.arrastreInicialY = 0
 
-        # Vincular eventos del ratón
-        lienzo.bind("<Configure>", self.dibujarTodo)
+        # Vincular eventos del ratón al lienzo
+        lienzo.bind("<Configure>",    self.dibujarTodo)
         lienzo.bind("<ButtonPress-1>", self.inicioArrastre)
-        lienzo.bind("<B1-Motion>", self.moverPlano)
-        lienzo.bind("<Button-4>", lambda e: self.hacerZoom(5))       # Linux rueda arriba
-        lienzo.bind("<Button-5>", lambda e: self.hacerZoom(-5))      # Linux rueda abajo
-        lienzo.bind("<MouseWheel>", lambda e: self.hacerZoom(5 if e.delta > 0 else -5))
+        lienzo.bind("<B1-Motion>",     self.moverPlano)
+        lienzo.bind("<Button-4>",      lambda e: self.hacerZoom(5))    # Linux: rueda arriba
+        lienzo.bind("<Button-5>",      lambda e: self.hacerZoom(-5))   # Linux: rueda abajo
+        lienzo.bind("<MouseWheel>",    lambda e: self.hacerZoom(5 if e.delta > 0 else -5))
 
     # ==========================================
     # INTERACCIÓN DEL USUARIO
     # ==========================================
 
     def inicioArrastre(self, evento):
-        """Guarda la posición inicial del clic."""
-        self.arrastre_x = evento.x
-        self.arrastre_y = evento.y
+        """Guarda la posición inicial del clic para calcular el desplazamiento."""
+        self.arrastreInicialX = evento.x
+        self.arrastreInicialY = evento.y
 
     def moverPlano(self, evento):
-        """Mueve el plano según el arrastre del ratón."""
-        self.desplazamientoX += evento.x - self.arrastre_x
-        self.desplazamientoY += evento.y - self.arrastre_y
-        self.arrastre_x = evento.x
-        self.arrastre_y = evento.y
+        """Desplaza el origen del plano según el movimiento del ratón."""
+        self.desplazamientoX += evento.x - self.arrastreInicialX
+        self.desplazamientoY += evento.y - self.arrastreInicialY
+        self.arrastreInicialX = evento.x
+        self.arrastreInicialY = evento.y
         self.dibujarTodo()
 
-    def hacerZoom(self, delta):
-        """Acerca o aleja el plano con la rueda del ratón."""
-        self.escala = max(10, min(200, self.escala + delta))
+    def hacerZoom(self, cambioPorPaso):
+        """Acerca o aleja el plano con la rueda del ratón. Escala entre 10 y 200 px/unidad."""
+        self.escala = max(10, min(200, self.escala + cambioPorPaso))
         self.dibujarTodo()
 
     # ==========================================
@@ -53,19 +53,19 @@ class Graficador:
     # ==========================================
 
     def centroX(self):
-        """Retorna la posición X del origen (0,0) en pixeles."""
+        """Posición X del origen matemático (0,0) en pixeles."""
         return self.lienzo.winfo_width() // 2 + self.desplazamientoX
 
     def centroY(self):
-        """Retorna la posición Y del origen (0,0) en pixeles."""
+        """Posición Y del origen matemático (0,0) en pixeles."""
         return self.lienzo.winfo_height() // 2 + self.desplazamientoY
 
     def aPixelX(self, xMatematico):
-        """Convierte coordenada X matemática a pixeles."""
+        """Convierte una coordenada X matemática a pixeles."""
         return self.centroX() + xMatematico * self.escala
 
     def aPixelY(self, yMatematico):
-        """Convierte coordenada Y matemática a pixeles (eje Y invertido en pantalla)."""
+        """Convierte una coordenada Y matemática a pixeles (eje Y invertido en pantalla)."""
         return self.centroY() - yMatematico * self.escala
 
     # ==========================================
@@ -73,7 +73,7 @@ class Graficador:
     # ==========================================
 
     def cargarDatos(self, tipoGrafico, datos):
-        """Guarda los datos matemáticos y dibuja la gráfica."""
+        """Recibe los datos matemáticos y lanza el dibujo inicial."""
         self.tipoGrafico = tipoGrafico
         self.datos = datos
         self.lienzo.update_idletasks()
@@ -84,54 +84,53 @@ class Graficador:
     # ==========================================
 
     def dibujarTodo(self, evento=None):
-        """Limpia el lienzo y redibuja todo: fondo, cuadrícula, ejes y gráfica."""
+        """Borra el lienzo y redibuja: fondo, cuadrícula, ejes y gráfica."""
         self.lienzo.delete("all")
-        
-        # Si venimos de un evento Configure, usamos sus medidas que son las más recientes
+
+        # Obtener dimensiones actuales del lienzo
         if evento and hasattr(evento, 'width') and evento.width > 10:
             ancho = evento.width
-            alto = evento.height
+            alto  = evento.height
         else:
             self.lienzo.update_idletasks()
             ancho = self.lienzo.winfo_width()
-            alto = self.lienzo.winfo_height()
-            
-        # Si el lienzo aún no se inicializa, le damos un tamaño por defecto
-        if ancho < 10: ancho = 800
-        if alto < 10: alto = 600
+            alto  = self.lienzo.winfo_height()
 
-        # Fondo gris claro (sin bordes blancos)
+        # Valores por defecto si el lienzo aún no se ha inicializado
+        if ancho < 10: ancho = 800
+        if alto  < 10: alto  = 600
+
+        # Fondo gris claro
         self.lienzo.create_rectangle(-2, -2, ancho + 4, alto + 4, fill="#f8f9fa", outline="")
 
         self.dibujarCuadricula(ancho, alto)
         self.dibujarEjes(ancho, alto)
 
-        # Dibujar la gráfica matemática
         if self.tipoGrafico == "conica" and self.datos:
             self.dibujarConica()
         elif self.tipoGrafico == "funcion" and self.datos:
             self.dibujarFuncion()
 
     def dibujarCuadricula(self, ancho, alto):
-        """Dibuja líneas de fondo tipo papel milimetrado."""
+        """Dibuja líneas de fondo estilo papel milimetrado."""
         cx = self.centroX()
         cy = self.centroY()
 
         xInicio = int((0 - cx) / self.escala) - 1
-        xFin = int((ancho - cx) / self.escala) + 2
+        xFin    = int((ancho - cx) / self.escala) + 2
         yInicio = int((cy - alto) / self.escala) - 1
-        yFin = int(cy / self.escala) + 2
+        yFin    = int(cy / self.escala) + 2
 
-        for x in range(xInicio, xFin):
-            pixelX = self.aPixelX(x)
+        for xUnidad in range(xInicio, xFin):
+            pixelX = self.aPixelX(xUnidad)
             self.lienzo.create_line(pixelX, 0, pixelX, alto, fill="#e0e0e0", dash=(2, 4))
 
-        for y in range(yInicio, yFin):
-            pixelY = self.aPixelY(y)
+        for yUnidad in range(yInicio, yFin):
+            pixelY = self.aPixelY(yUnidad)
             self.lienzo.create_line(0, pixelY, ancho, pixelY, fill="#e0e0e0", dash=(2, 4))
 
     def dibujarEjes(self, ancho, alto):
-        """Dibuja los ejes X e Y con sus números."""
+        """Dibuja los ejes X e Y con marcas numéricas."""
         cx = self.centroX()
         cy = self.centroY()
 
@@ -141,21 +140,21 @@ class Graficador:
 
         # Números en el eje X
         xInicio = int((0 - cx) / self.escala)
-        xFin = int((ancho - cx) / self.escala) + 1
-        for x in range(xInicio, xFin):
-            if x != 0:
-                pixelX = self.aPixelX(x)
+        xFin    = int((ancho - cx) / self.escala) + 1
+        for xUnidad in range(xInicio, xFin):
+            if xUnidad != 0:
+                pixelX = self.aPixelX(xUnidad)
                 self.lienzo.create_line(pixelX, cy - 4, pixelX, cy + 4, fill="#495057")
-                self.lienzo.create_text(pixelX, cy + 14, text=str(x), fill="#6c757d", font=("Arial", 8))
+                self.lienzo.create_text(pixelX, cy + 14, text=str(xUnidad), fill="#6c757d", font=("Arial", 8))
 
         # Números en el eje Y
         yInicio = int((cy - alto) / self.escala)
-        yFin = int(cy / self.escala) + 1
-        for y in range(yInicio, yFin):
-            if y != 0:
-                pixelY = self.aPixelY(y)
+        yFin    = int(cy / self.escala) + 1
+        for yUnidad in range(yInicio, yFin):
+            if yUnidad != 0:
+                pixelY = self.aPixelY(yUnidad)
                 self.lienzo.create_line(cx - 4, pixelY, cx + 4, pixelY, fill="#495057")
-                self.lienzo.create_text(cx - 14, pixelY, text=str(y), fill="#6c757d", font=("Arial", 8))
+                self.lienzo.create_text(cx - 14, pixelY, text=str(yUnidad), fill="#6c757d", font=("Arial", 8))
 
     # ==========================================
     # DIBUJO DE CÓNICAS
@@ -163,21 +162,23 @@ class Graficador:
 
     def dibujarConica(self):
         """Dibuja la cónica según su tipo: circunferencia, elipse, hipérbola o parábola."""
-        tipoConica = self.datos.get("tipo", "")
-        centro = self.datos.get("centro")
-        parametros = self.datos.get("parametros", {})
+        tipoConica  = self.datos.get("tipo", "")
+        centro      = self.datos.get("centro")
+        parametros  = self.datos.get("parametros", {})
+
         if not centro:
             return
 
         h, k = centro
-        colorConica = "#007bff"
+        colorCurva = "#007bff"
 
         if tipoConica == "Circunferencia":
             radio = parametros.get("r", 0)
             self.lienzo.create_oval(
                 self.aPixelX(h - radio), self.aPixelY(k + radio),
                 self.aPixelX(h + radio), self.aPixelY(k - radio),
-                outline=colorConica, width=2)
+                outline=colorCurva, width=2
+            )
             self.marcarPunto(h, k, "Centro")
 
         elif tipoConica == "Elipse":
@@ -186,47 +187,47 @@ class Graficador:
             self.lienzo.create_oval(
                 self.aPixelX(h - semiEjeA), self.aPixelY(k + semiEjeB),
                 self.aPixelX(h + semiEjeA), self.aPixelY(k - semiEjeB),
-                outline=colorConica, width=2)
+                outline=colorCurva, width=2
+            )
             self.marcarPunto(h, k, "Centro")
 
         elif tipoConica == "Hipérbola":
             semiEjeA = parametros.get("a2", 0) ** 0.5
             semiEjeB = parametros.get("b2", 0) ** 0.5
-            ramaDerecha = []
+            ramaDerecha   = []
             ramaIzquierda = []
-            t = semiEjeA
-            while t <= 25:
-                valor = ((t ** 2) / (semiEjeA ** 2)) - 1
-                if valor >= 0:
-                    yValor = (valor * semiEjeB ** 2) ** 0.5
-                    ramaDerecha.insert(0, (h + t, k + yValor))
-                    ramaDerecha.append((h + t, k - yValor))
-                    ramaIzquierda.insert(0, (h - t, k + yValor))
-                    ramaIzquierda.append((h - t, k - yValor))
-                t += 0.1
-            self.trazarLinea(ramaDerecha, colorConica)
-            self.trazarLinea(ramaIzquierda, colorConica)
+
+            xActual = semiEjeA
+            while xActual <= 25:
+                valorBajoRaiz = ((xActual ** 2) / (semiEjeA ** 2)) - 1
+                if valorBajoRaiz >= 0:
+                    yValor = (valorBajoRaiz * semiEjeB ** 2) ** 0.5
+                    ramaDerecha.insert(0, (h + xActual, k + yValor))
+                    ramaDerecha.append((h + xActual, k - yValor))
+                    ramaIzquierda.insert(0, (h - xActual, k + yValor))
+                    ramaIzquierda.append((h - xActual, k - yValor))
+                xActual += 0.1
+
+            self.trazarLinea(ramaDerecha,   colorCurva)
+            self.trazarLinea(ramaIzquierda, colorCurva)
             self.marcarPunto(h, k, "Centro")
 
         elif tipoConica == "Parábola":
-            parametroP = parametros.get("p", 0)
+            parametroP  = parametros.get("p", 0)
             orientacion = parametros.get("orientacion", "vertical")
-            puntos = []
+            puntos      = []
 
-            if orientacion == "horizontal":
-                t = -25
-                while t <= 25:
-                    xValor = (t ** 2) / (4 * parametroP) if parametroP != 0 else 0
-                    puntos.append((h + xValor, k + t))
-                    t += 0.2
-            else:
-                t = -25
-                while t <= 25:
-                    yValor = (t ** 2) / (4 * parametroP) if parametroP != 0 else 0
-                    puntos.append((h + t, k + yValor))
-                    t += 0.2
+            tActual = -25
+            while tActual <= 25:
+                if orientacion == "horizontal":
+                    xValor = (tActual ** 2) / (4 * parametroP) if parametroP != 0 else 0
+                    puntos.append((h + xValor, k + tActual))
+                else:
+                    yValor = (tActual ** 2) / (4 * parametroP) if parametroP != 0 else 0
+                    puntos.append((h + tActual, k + yValor))
+                tActual += 0.2
 
-            self.trazarLinea(puntos, colorConica)
+            self.trazarLinea(puntos, colorCurva)
             self.marcarPunto(h, k, "Vértice")
 
     # ==========================================
@@ -234,72 +235,97 @@ class Graficador:
     # ==========================================
 
     def dibujarFuncion(self):
-        """Dibuja la función por tramos, cortando en las discontinuidades."""
-        funcionEvaluar = self.datos["limites"]["funcionEvaluar"]
-        puntoAnalisis = self.datos["funcion"]["puntoAnalisis"]
+        """Dibuja la función por tramos cortando el trazo en las discontinuidades."""
+        funcionEvaluar     = self.datos["limites"]["funcionEvaluar"]
+        puntoAnalisis      = self.datos["funcion"]["puntoAnalisis"]
         tipoDiscontinuidad = self.datos["funcion"]["tipo"]
 
         anchoLienzo = self.lienzo.winfo_width()
-        cx = self.centroX()
+        cx     = self.centroX()
         xInicio = int((0 - cx) / self.escala) - 5
-        xFin = int((anchoLienzo - cx) / self.escala) + 5
+        xFin    = int((anchoLienzo - cx) / self.escala) + 5
 
-        colorFuncion = "#dc3545"
+        colorCurva  = "#dc3545"
         tramoActual = []
-        x = xInicio
-        paso = 0.05
+        xActual     = xInicio
+        paso        = 0.05
 
-        while x <= xFin:
-            valorY = funcionEvaluar(x)
+        while xActual <= xFin:
+            valorY = funcionEvaluar(xActual)
 
-            # Si el valor es indefinido o muy grande, cortamos el trazo
-            if valorY == "Indefinido" or valorY is None or abs(valorY) > 100:
+            # Cortar el trazo si el valor no está definido o es muy grande (discontinuidad)
+            if valorY is None or valorY == "Indefinido" or abs(valorY) > 100:
                 if len(tramoActual) > 1:
-                    self.trazarLinea(tramoActual, colorFuncion)
+                    self.trazarLinea(tramoActual, colorCurva)
                 tramoActual = []
             else:
-                tramoActual.append((x, valorY))
-            x += paso
+                tramoActual.append((xActual, valorY))
 
-        # Dibujar el último tramo pendiente
+            xActual += paso
+
+        # Dibujar el último tramo si quedó pendiente
         if len(tramoActual) > 1:
-            self.trazarLinea(tramoActual, colorFuncion)
+            self.trazarLinea(tramoActual, colorCurva)
 
-        # Marcadores visuales según tipo de discontinuidad
+        # Marcadores visuales según el tipo de discontinuidad
         if tipoDiscontinuidad == "infinita":
             # Asíntota vertical (línea punteada)
             pixelAsintota = self.aPixelX(puntoAnalisis)
-            altoLienzo = self.lienzo.winfo_height()
+            altoLienzo    = self.lienzo.winfo_height()
             self.lienzo.create_line(pixelAsintota, 0, pixelAsintota, altoLienzo,
                                     fill="#adb5bd", dash=(6, 4))
             self.lienzo.create_text(pixelAsintota + 8, 16, text=f"x = {puntoAnalisis}",
                                     fill="#adb5bd", anchor=tk.W, font=("Arial", 9, "italic"))
 
         elif tipoDiscontinuidad == "removible":
-            # Círculo vacío: indica que el punto NO está definido
-            valorLimite = puntoAnalisis + self.datos["funcion"]["digitos"][0]  # a + d1
-            pxHueco = self.aPixelX(puntoAnalisis)
-            pyHueco = self.aPixelY(valorLimite)
-            radio = 5
-            self.lienzo.create_oval(pxHueco - radio, pyHueco - radio,
-                                    pxHueco + radio, pyHueco + radio,
-                                    outline=colorFuncion, width=2, fill="#f8f9fa")
+            # Círculo vacío: el punto NO está definido en x = a
+            valorLimite = puntoAnalisis + self.datos["funcion"]["digitos"][0]   # límite = a + d1
+            pixelXAgujero = self.aPixelX(puntoAnalisis)
+            pixelYAgujero = self.aPixelY(valorLimite)
+            radioCirculo  = 5
+            self.lienzo.create_oval(
+                pixelXAgujero - radioCirculo, pixelYAgujero - radioCirculo,
+                pixelXAgujero + radioCirculo, pixelYAgujero + radioCirculo,
+                outline=colorCurva, width=2, fill="#f8f9fa"
+            )
 
         elif tipoDiscontinuidad == "salto":
-            # Puntos llenos en cada lado del salto
             d2 = self.datos["funcion"]["digitos"][1]
             d4 = self.datos["funcion"]["digitos"][3]
-            valorIzq = puntoAnalisis + d2
-            valorDer = puntoAnalisis + d4
-            self.marcarPunto(puntoAnalisis, valorIzq, "lím izq")
-            self.marcarPunto(puntoAnalisis, valorDer, "lím der")
+            valorIzquierda = puntoAnalisis + d2   # lím(x→a⁻) = a + d2
+            valorDerecha   = puntoAnalisis + d4   # lím(x→a⁺) = f(a) = a + d4
+            radioCirculo   = 5
+
+            # Círculo VACÍO: límite por la izquierda (el punto NO pertenece a la rama)
+            pixelXIzq = self.aPixelX(puntoAnalisis)
+            pixelYIzq = self.aPixelY(valorIzquierda)
+            self.lienzo.create_oval(
+                pixelXIzq - radioCirculo, pixelYIzq - radioCirculo,
+                pixelXIzq + radioCirculo, pixelYIzq + radioCirculo,
+                outline=colorCurva, width=2, fill="#f8f9fa"
+            )
+            self.lienzo.create_text(pixelXIzq + 8, pixelYIzq - 14,
+                                    text=f"lím izq ({puntoAnalisis}, {valorIzquierda})",
+                                    fill=colorCurva, anchor=tk.W, font=("Arial", 8))
+
+            # Círculo LLENO: valor real de f(a) (el punto SÍ pertenece)
+            pixelXDer = self.aPixelX(puntoAnalisis)
+            pixelYDer = self.aPixelY(valorDerecha)
+            self.lienzo.create_oval(
+                pixelXDer - radioCirculo, pixelYDer - radioCirculo,
+                pixelXDer + radioCirculo, pixelYDer + radioCirculo,
+                outline=colorCurva, width=2, fill=colorCurva
+            )
+            self.lienzo.create_text(pixelXDer + 8, pixelYDer + 6,
+                                    text=f"f({puntoAnalisis}) = {valorDerecha}",
+                                    fill=colorCurva, anchor=tk.W, font=("Arial", 8))
 
     # ==========================================
     # UTILIDADES DE DIBUJO
     # ==========================================
 
     def trazarLinea(self, puntosMath, color):
-        """Dibuja una línea continua desde una lista de coordenadas (x, y) matemáticas."""
+        """Dibuja una línea continua a partir de una lista de puntos (x, y) matemáticos."""
         coordenadasPixel = []
         for xMath, yMath in puntosMath:
             coordenadasPixel.extend([self.aPixelX(xMath), self.aPixelY(yMath)])
@@ -307,7 +333,7 @@ class Graficador:
             self.lienzo.create_line(coordenadasPixel, fill=color, width=2)
 
     def marcarPunto(self, x, y, etiqueta):
-        """Dibuja un punto negro con una etiqueta de texto."""
+        """Dibuja un punto negro con su etiqueta de texto sobre el plano."""
         pixelX = self.aPixelX(x)
         pixelY = self.aPixelY(y)
         self.lienzo.create_oval(pixelX - 4, pixelY - 4, pixelX + 4, pixelY + 4, fill="#212529")

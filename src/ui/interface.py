@@ -98,7 +98,7 @@ def construirPestanaRut(contenedor, resultado):
 
 def construirPestanaConica(contenedor, ecuacionTexto, datosConica):
     """Panel izquierdo con información + panel derecho con gráfica."""
-    # Panel izquierdo
+    # Panel izquierdo con scrollbar para mostrar toda la información
     panelIzquierdo = ttk.Frame(contenedor, width=420)
     panelIzquierdo.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
     panelIzquierdo.pack_propagate(False)
@@ -111,6 +111,34 @@ def construirPestanaConica(contenedor, ecuacionTexto, datosConica):
     if centro:
         textoCanonica += f"\nCentro/Vértice: {centro}"
     crearSeccion(panelIzquierdo, "Forma Canónica", textoCanonica)
+
+    # Mostrar parámetros geométricos calculados por el programa
+    geometria = datosConica.get('geometria', {})
+    if geometria:
+        lineasGeo = []
+        vertices = geometria.get('vertices', [])
+        focos = geometria.get('focos', [])
+        excentricidad = geometria.get('excentricidad')
+        ejeTransverso = geometria.get('ejeTransverso')
+        ejeConjugado = geometria.get('ejeConjugado')
+        directriz = geometria.get('directriz')
+
+        if vertices:
+            lineasGeo.append(f"Vértices: {vertices}")
+        if focos:
+            lineasGeo.append(f"Focos: {focos}")
+        if excentricidad is not None:
+            lineasGeo.append(f"Excentricidad: e = {excentricidad}")
+        if ejeTransverso is not None:
+            lineasGeo.append(f"Eje mayor/transverso: {ejeTransverso}")
+        if ejeConjugado is not None:
+            lineasGeo.append(f"Eje menor/conjugado: {ejeConjugado}")
+        if directriz:
+            lineasGeo.append(f"Dir./Asíntotas: {directriz}")
+
+        if lineasGeo:
+            crearSeccion(panelIzquierdo, "Parámetros Calculados",
+                         "\n".join(lineasGeo))
 
     crearCamposDefensa(panelIzquierdo, "Campos de Defensa Oral",
                        ["Centro", "Vértices", "Focos",
@@ -174,12 +202,19 @@ def construirPestanaLimites(contenedor, analisis):
         textoDer = f"{valorDer:.4f}" if valorDer is not None else "Indef."
         tablaValores.insert("", tk.END, values=(f"{xIzq:.4f}", textoIzq, f"{xDer:.4f}", textoDer))
 
-    # Resultado de límites
+    # Resultado de límites y valor f(a)
     puntoA = datosFuncion["puntoAnalisis"]
+    funcionEval = datosLimites.get('funcionEvaluar')
+    valorEnA = None
+    if funcionEval:
+        valorEnA = funcionEval(puntoA)
+    strValorA = f"{valorEnA:.4f}" if valorEnA is not None else "Indefinido (no existe)"
+
     crearSeccion(panelIzquierdo, "Resultado de Límites",
                  f"lím(x→{puntoA}⁻) = {datosLimites['limiteIzquierda']}\n"
                  f"lím(x→{puntoA}⁺) = {datosLimites['limiteDerecha']}\n"
-                 f"¿Existe el límite? {'Sí' if datosLimites['existeLimite'] else 'No'}")
+                 f"¿Existe el límite? {'Sí' if datosLimites['existeLimite'] else 'No'}\n"
+                 f"Valor f({puntoA}) = {strValorA}")
 
     # Campos de defensa oral
     crearCamposDefensa(panelIzquierdo, "Campos de Defensa Oral",
