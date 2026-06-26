@@ -1,24 +1,22 @@
-# conic.py - Construcción y clasificación de secciones cónicas
-# ============================================================================
-# ECUACIÓN GENERAL DE CÓNICA: Ax² + By² + Cx + Dy + E = 0
-#
-# Cálculo de coeficientes a partir de los dígitos del RUT:
-#   A = (d1 + d2) / v
-#   B = (d3 + d4) / v
-#   C = -(d5 + d6)
-#   D = -(d7 + d8)
-#   E = d1 + d3 + d5 + d7
-#
-# Ajustes para garantizar variedad de cónicas:
-#   - Si d8 impar:              B → -B              (genera hipérbolas)
-#   - Si d1 = d2:               B = A               (genera circunferencias)
-#   - Si (d5 + d6) múltiplo 3:  A = 0 o B = 0       (genera parábolas)
+'''
+conic.py - Construcción y clasificación de secciones cónicas
+============================================================================
+ECUACIÓN GENERAL DE CÓNICA: Ax² + By² + Cx + Dy + E = 0
+Cálculo de coeficientes a partir de los dígitos del RUT:
+  A = (d1 + d2) / v
+  B = (d3 + d4) / v
+  C = -(d5 + d6)
+  D = -(d7 + d8)
+  E = d1 + d3 + d5 + d7
 
+ Ajustes para garantizar variedad de cónicas:
+   - Si d8 impar:              B → -B              (genera hipérbolas)
+   - Si d1 = d2:               B = A               (genera circunferencias)
+   - Si (d5 + d6) múltiplo 3:  A = 0 o B = 0       (genera parábolas)
+'''
 
 def construirEcuacionGeneral(digitos, v):
     """
-    Construye la ecuación general de la cónica a partir de los dígitos del RUT.
-
     Parámetros:
         digitos (list[int]): Lista [d1, d2, d3, d4, d5, d6, d7, d8]
         v (int): Variable auxiliar según el dígito verificador
@@ -106,19 +104,19 @@ def clasificarConica(coeficientes):
     pasos.append(f"Coeficientes: A = {A}, B = {B}")
     pasos.append("")
 
-    # Tolerancia para comparar flotantes de forma segura
+    # Tolerancia para comparar flotantes de forma segura, le-9 es 0.000000001
     TOLERANCIA = 1e-9
 
-    if abs(A - B) < TOLERANCIA and A != 0:
+    if abs(A - B) < TOLERANCIA and A != 0: # Entonces si A y B son casi iguales a 0, se considera que es una circunferencia
         tipo = "Circunferencia"
         descripcion = "A y B son iguales y distintos de cero"
-    elif A * B > 0 and abs(A - B) >= TOLERANCIA:
+    elif A * B > 0 and abs(A - B) >= TOLERANCIA: # Si poseen el mismo signo, y ladiferencia es mayor a la tolerancia y que son distintos.
         tipo = "Elipse"
         descripcion = "A y B tienen el mismo signo pero son distintos"
-    elif A * B < 0:
+    elif A * B < 0: # Si poseen signos opuestos
         tipo = "Hipérbola"
         descripcion = "A y B tienen signos opuestos"
-    elif (A == 0 and B != 0) or (A != 0 and B == 0):
+    elif (A == 0 and B != 0) or (A != 0 and B == 0): # Si exactamente uno de los coeficientes (A o B) es cero
         tipo = "Parábola"
         descripcion = "Exactamente uno de los coeficientes (A o B) es cero"
     else:
@@ -147,7 +145,7 @@ def mostrarEcuacion(coeficientes):
 
     # Construir lista de términos no nulos como (valor, texto_sin_signo)
     terminos = []
-    if A != 0: terminos.append((A, f"{abs(A)}x²"))
+    if A != 0: terminos.append((A, f"{abs(A)}x²")) # Va a imprimir solo si es distinto de 0.
     if B != 0: terminos.append((B, f"{abs(B)}y²"))
     if C != 0: terminos.append((C, f"{abs(C)}x"))
     if D != 0: terminos.append((D, f"{abs(D)}y"))

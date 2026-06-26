@@ -51,17 +51,14 @@ class Graficador:
         lienzo.bind("<Button-5>",       lambda e: self.hacerZoom(-DELTA_ZOOM))     # Linux rueda abajo
         lienzo.bind("<MouseWheel>",     lambda e: self.hacerZoom(DELTA_ZOOM if e.delta > 0 else -DELTA_ZOOM))
 
-    # ==========================================
-    # INTERACCIÓN DEL USUARIO
-    # ==========================================
 
-    def inicioArrastre(self, evento):
-        """Guarda la posición inicial del clic para calcular el desplazamiento."""
+    def inicioArrastre(self, evento): # Clic presionado
+        
         self.arrastreInicialX = evento.x
         self.arrastreInicialY = evento.y
 
-    def moverPlano(self, evento):
-        """Desplaza el origen del plano según el movimiento del ratón."""
+    def moverPlano(self, evento): # Mouse en movimiento
+       
         self.desplazamientoX += evento.x - self.arrastreInicialX
         self.desplazamientoY += evento.y - self.arrastreInicialY
         self.arrastreInicialX = evento.x
@@ -271,7 +268,7 @@ class Graficador:
 
         anchoLienzo = self.lienzo.winfo_width()
         cx     = self.centroX()
-        xInicio = int((0 - cx) / self.escala) - 5
+        xInicio = int((0 - cx) / self.escala) - 5 #Calcular los bordes para que no se corten
         xFin    = int((anchoLienzo - cx) / self.escala) + 5
 
         colorCurva  = COLOR_CURVA_FUNCION
