@@ -49,24 +49,24 @@ def construirEcuacionGeneral(digitos, v):
     pasos.append("=== PASO 2: Aplicar ajustes para garantizar variedad de cónicas ===")
 
     # Condiciones que determinan qué ajuste aplicar
-    d8EsImpar         = d8 % 2 != 0
-    d1IgualA_d2       = d1 == d2
-    sumad5d6Mult3     = (d5 + d6) % 3 == 0
+    d8_es_impar = d8 % 2 != 0
+    d1_igual_d2 = d1 == d2
+    suma_d5_d6_multiplo_3 = (d5 + d6) % 3 == 0
 
-    pasos.append(f"Verificar d8 impar: {d8} es {'impar' if d8EsImpar else 'par'}")
-    pasos.append(f"Verificar d1 = d2: {d1} {'=' if d1IgualA_d2 else '≠'} {d2}")
-    pasos.append(f"Verificar (d5 + d6) múltiplo de 3: ({d5} + {d6}) = {d5 + d6} {'es' if sumad5d6Mult3 else 'no es'} múltiplo de 3")
+    pasos.append(f"Verificar d8 impar: {d8} es {'impar' if d8_es_impar else 'par'}")
+    pasos.append(f"Verificar d1 = d2: {d1} {'=' if d1_igual_d2 else '≠'} {d2}")
+    pasos.append(f"Verificar (d5 + d6) múltiplo de 3: ({d5} + {d6}) = {d5 + d6} {'es' if suma_d5_d6_multiplo_3 else 'no es'} múltiplo de 3")
 
     # Aplicar ajustes en orden
-    if d8EsImpar:
+    if d8_es_impar:
         B = -B
         pasos.append("-> Ajuste: d8 impar → B cambia de signo (genera Hipérbola)")
 
-    if d1IgualA_d2:
+    if d1_igual_d2:
         B = A
         pasos.append("-> Ajuste: d1 = d2 → B = A (genera Circunferencia)")
 
-    if sumad5d6Mult3:
+    if suma_d5_d6_multiplo_3:
         if d7 % 2 == 0:
             B = 0
             pasos.append(f"-> Ajuste: (d5+d6) múltiplo de 3 y d7={d7} par → B = 0 (Parábola vertical)")
