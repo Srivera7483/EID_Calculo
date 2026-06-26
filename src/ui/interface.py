@@ -112,37 +112,10 @@ def construirPestanaConica(contenedor, ecuacionTexto, datosConica):
         textoCanonica += f"\nCentro/Vértice: {centro}"
     crearSeccion(panelIzquierdo, "Forma Canónica", textoCanonica)
 
-    # Mostrar parámetros geométricos calculados por el programa
-    geometria = datosConica.get('geometria', {})
-    if geometria:
-        lineasGeo = []
-        vertices = geometria.get('vertices', [])
-        focos = geometria.get('focos', [])
-        excentricidad = geometria.get('excentricidad')
-        ejeTransverso = geometria.get('ejeTransverso')
-        ejeConjugado = geometria.get('ejeConjugado')
-        directriz = geometria.get('directriz')
-
-        if vertices:
-            lineasGeo.append(f"Vértices: {vertices}")
-        if focos:
-            lineasGeo.append(f"Focos: {focos}")
-        if excentricidad is not None:
-            lineasGeo.append(f"Excentricidad: e = {excentricidad}")
-        if ejeTransverso is not None:
-            lineasGeo.append(f"Eje mayor/transverso: {ejeTransverso}")
-        if ejeConjugado is not None:
-            lineasGeo.append(f"Eje menor/conjugado: {ejeConjugado}")
-        if directriz:
-            lineasGeo.append(f"Dir./Asíntotas: {directriz}")
-
-        if lineasGeo:
-            crearSeccion(panelIzquierdo, "Parámetros Calculados",
-                         "\n".join(lineasGeo))
-
-    crearCamposDefensa(panelIzquierdo, "Campos de Defensa Oral",
-                       ["Centro", "Vértices", "Focos",
-                        "Eje mayor / transverso", "Eje menor / conjugado", "Directriz"])
+    # El alumno debe deducir los parámetros geométricos desde la forma canónica
+    crearCamposDefensa(panelIzquierdo, "Completa los datos desde la forma canónica",
+                       ["Centro / Vértice", "Vértices", "Focos",
+                        "Eje mayor / transverso", "Eje menor / conjugado", "Directriz / Asíntotas", "Excentricidad"])
 
     # Panel derecho: gráfica
     panelDerecho = ttk.Frame(contenedor)
