@@ -84,7 +84,7 @@ def transformarACanonica(coeficientes):
                 formaCanonica = f"(x - {h:.2f})² / {denominadorX:.2f} + (y - {k:.2f})² / {denominadorY:.2f} = 1"
             else:
                 tipoConica = "Hipérbola"
-                formaCanonica = f"(x - {h:.2f})² / {denominadorX:.2f} + (y - {k:.2f})² / {denominadorY:.2f} = 1"
+                formaCanonica = f"(x - {h:.2f})² / {denominadorX:.2f} - (y - {k:.2f})² / {denominadorY:.2f} = 1"
 
             parametros['a2'] = abs(denominadorX)
             parametros['b2'] = abs(denominadorY)
