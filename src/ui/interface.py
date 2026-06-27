@@ -11,7 +11,7 @@ from modules.plotter import Graficador
 def iniciarInterfaz(resultadoValidacion, ecuacionTexto, datosConica, analisisFunciones):
     """Inicia la ventana principal con tres pestañas."""
     ventana = tk.Tk()
-    ventana.title("EID_Calculo – Cónicas y Funciones por Tramos")
+    ventana.title("EID_Calculo - Cónicas y Funciones por Tramos")
     ventana.geometry("1200x800")
     ventana.minsize(1000, 650)
 
@@ -81,7 +81,7 @@ def construirPestanaRut(contenedor, resultado):
     lineasCalculo = [
         f"Suma de productos:  {sumaProductos}  =  {detalles['suma']}",
         f"Resto (Suma mod 11):  {detalles['suma']} mod 11  =  {detalles['resto']}",
-        f"DV esperado (11 − Resto):  11 − {detalles['resto']}  =  {detalles['dvEsperado']}",
+        f"DV esperado (11 - Resto):  11 - {detalles['resto']}  =  {detalles['dvEsperado']}",
     ]
     for linea in lineasCalculo:
         ttk.Label(seccionCalculo, text=linea, font=("Arial", 11)).pack(anchor=tk.W, pady=2)

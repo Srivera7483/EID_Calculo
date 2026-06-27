@@ -92,7 +92,7 @@ def clasificarConica(coeficientes):
         dict: {'tipo': str, 'descripcion': str, 'pasos': list[str]}
 
     Criterios de clasificación:
-        - A = B ≠ 0         → Circunferencia
+        - A = B ≠ 0        → Circunferencia
         - A·B > 0, A ≠ B    → Elipse
         - A·B < 0            → Hipérbola
         - A = 0 o B = 0      → Parábola
@@ -132,7 +132,8 @@ def clasificarConica(coeficientes):
 def mostrarEcuacion(coeficientes):
     """
     Formatea la ecuación general como texto legible: "Ax² + By² + Cx + Dy + E = 0".
-    Maneja correctamente coeficientes negativos en cualquier posición.
+    Maneja correctamente coeficientes negativos en cualquier posición y oculta
+    los coeficientes unitarios (1) para una visualización más limpia.
 
     Retorna:
         str: Ecuación formateada
@@ -143,13 +144,22 @@ def mostrarEcuacion(coeficientes):
     D = coeficientes.get('D', 0)
     E = coeficientes.get('E', 0)
 
+    def formatear(valor, variable):
+        # Ocultar el número si es 1 o -1, a menos que sea el término independiente (E)
+        if abs(valor) == 1 and variable != "":
+            num_str = ""
+        else:
+            # Mostrar como entero si no tiene decimales (ej. 4.0 -> 4)
+            num_str = f"{int(abs(valor))}" if float(valor).is_integer() else f"{abs(valor):.2f}"
+        return f"{num_str}{variable}"
+
     # Construir lista de términos no nulos como (valor, texto_sin_signo)
     terminos = []
-    if A != 0: terminos.append((A, f"{abs(A)}x²")) # Va a imprimir solo si es distinto de 0.
-    if B != 0: terminos.append((B, f"{abs(B)}y²"))
-    if C != 0: terminos.append((C, f"{abs(C)}x"))
-    if D != 0: terminos.append((D, f"{abs(D)}y"))
-    if E != 0: terminos.append((E, f"{abs(E)}"))
+    if A != 0: terminos.append((A, formatear(A, "x²"))) 
+    if B != 0: terminos.append((B, formatear(B, "y²")))
+    if C != 0: terminos.append((C, formatear(C, "x")))
+    if D != 0: terminos.append((D, formatear(D, "y")))
+    if E != 0: terminos.append((E, formatear(E, "")))
 
     if not terminos:
         return "0 = 0"

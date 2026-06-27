@@ -4,7 +4,6 @@
 from modules.rut_validator import validarRutConPasos, extraerDigitos, calcularV
 from modules.conic import construirEcuacionGeneral, clasificarConica, mostrarEcuacion
 from modules.transformations import transformarACanonica, transformarAGeneral
-# from modules.plotter import graficarConica
 from modules.functions import analizarFuncionPorTramos
 from ui.interface import iniciarInterfaz
 
